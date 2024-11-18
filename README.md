@@ -1,0 +1,1 @@
+Collector's Store is a Web Development showcase project and a part of Marcus Palma's portfolio
