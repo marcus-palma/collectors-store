@@ -2,10 +2,12 @@
 <html lang="en">
     <head>
         <link rel="stylesheet" href="../css/header.css" />
+        <!-- RWD: Setting viewport attribute width value to device width -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
     <body>
         <!-- Header outer container. Flexes to #header-keyterms -->
-        <header id="header-outer" title="Myth's Manor">
+        <header id="header-outer" aria-label="Header section with title and navigation">
             <!-- Strip advertising key terms-of-service. Resizes with font height -->
             <section id="header-keyterms">
                 <div>
@@ -23,25 +25,44 @@
             </section>
             <!-- Header inner main container -->
             <div id="header-inner">
-                <!-- Logo title and icon container -->
-                <div id="logo-container">
-                    <!-- Title -->
-                    <img>
-                    <!-- Icon -->
-                    <img>
-                </div>
-                <!-- Navigation container -->
-                <nav id="header-nav">
-                    <!-- Full menu element -->
-                    <img id="full-menu">
+                <!-- Header navigation parent for accessibility purposes. No display -->
+                <nav>
+                    <!-- Header first grid row fraction container -->
+                    <div id="header-first-row-fraction">
+                        <!-- Logo title and icon container -->
+                        <div id="logo-container" aria-label="Website logo">
+                            <!-- Title -->
+                            <img aria-label="Myth's Manor">
+                            <!-- Icon -->
+                            <img>
+                        </div>
+                        <!-- Navigation Full-menu button -->
+                        <img id="nav-full-menu-button" aria-label="Show/hide full menu">
+                    </div>
+                    <!-- Navigation Middle bar container -->
+                    <div id="nav-middle-bar-container">
+                        <!-- Navigation Search bar -->
+                        <span id="nav-search-bar" aria-label="Search bar">Search for your next mystery...</span>
+                        <!-- Navigation Quick-access menu container -->
+                        <nav id="nav-quick-menu" aria-label="Quick-access menu">
+                            <span>Figurines</span>
+                            <span>Jewelry</span>
+                            <span>Posters</span>
+                            <span>|</span>
+                            <span>Egyptian</span>
+                            <span>Greek</span>
+                            <span>Chinese</span>
+                            <span>Nordic</span>
+                        </nav>    
+                    </div>
+                    <!-- Shopping basket container. Scripted number of items -->
+                    <nav id="basket-container" aria-label="Shopping basket">
+                        <!-- Basket icon -->
+                        <img>
+                        <!-- Basket indicator number of items -->
+                        <span id="basket-num-indicator">13</span>
+                    </nav>
                 </nav>
-                <!-- Shopping basket container. Scripted number of items -->
-                <nav id="basket-container">
-                    <!-- Basket icon -->
-                    <img>
-                    <!-- Basket indicator number of items -->
-                    <div id="basket-num-indicator">13</div>
-                </div>
             </div>
         </header>
     </body>
