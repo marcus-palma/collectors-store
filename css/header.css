@@ -12,7 +12,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 100vw;
     z-index: 2;
 }
 
@@ -37,60 +37,94 @@
     width: 100%;
     height: 124px;
     background: #FFF290;
-    grid-template-rows: 1fr, 2fr, 1fr;
+    grid-template-columns: 0.5fr 0.5fr 2.5rem 2fr 1fr;
+    grid-auto-rows: auto;
+    align-items: end;
+    gap: 0;
 }
+
+/* Header first grid row fraction container with logos and full-menu button
+#header-first-row-fraction {
+    display: inline-flex;
+    position: static;
+    flex-direction: row;
+    flex: 1 0;
+    align-items: end;
+    justify-content: center;
+    border: 1px solid black;
+}s
+*/
+
+/* Logo title */
+#logo-title {
+    display: inline-block;
+    position: static;
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 0;
+    margin: 0 0 0.5rem 0.5rem;
+}
+
+/* Logo icon */
+#logo-icon {
+    display: inline-block;
+    position: static;
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
 
 /* Full menu button icon */
 #nav-full-menu-button {
-    display: block;
-    position: absolute;
-    left: 24vw;
-    top: 2rem;
+    display: inline-block;
+    position: static;
     min-width: 2rem;
     min-height: 2rem;
     padding: 0;
-    margin: 0;
+    margin: 0 0.5rem 4rem 0;
 }
 
 /* Navigation Middle Bar Container */
 #nav-middle-bar-container {
-    /* (Flexbox version)
-    display: flex;
-    position: absolute;
-    top: 2rem;
-    width: 50vw;
+    /* Flexbox version */
+    display: inline-flex;
+    position: static;
+    width: auto;
+    height: 6rem;
     padding: 0;
-    border: 2px;
-    margin: 0, auto;
-    flex-direction: column;
-    */
-
-    /* Placed in a Grid version */
-    display: box;
-    padding: 0;
-    border: 2px;
+    border: 1px solid black;
     margin: 0;
+    flex-direction: column-reverse;
+    
+
+    /* (Placed in a Grid version)
+    display: inline-block;
+    padding: 0;
+    border: 1px solid black;
+    margin: 0;
+    */
 }
 
 /* Navigation search bar */
 #nav-search-bar {
-    display: block;
+    display: inline-block;
     box-sizing: border-box;
-    position: absolute;
-    top: 2rem;
-    width: 50vw;
-    margin: 0, auto;
+    position: static;
+    width: auto;
     padding: 0.2rem;
-    margin: 0, auto;    /* Center horizontally within Header Inner Main Container */
     background: #FFFFFF;
 }
 
 /* Navigation quick-access menu container */
 #nav-quick-menu {
-    display: flex;
+    display: inline-flex;
     position: absolute;
     width: 50vw;
-    border: 2px;
+    border: 1px solid black;
     margin: 0, auto;    /* Center horizontally within Header Inner Main Container */
     flex-direction: row;
     align-items: center;
@@ -100,21 +134,27 @@
 /* Shopping basket container */
 #basket-container {
     display: inline-block;
-    position: relative;
-    right: 0.5em;
-    top: 50%;
-    width: auto;
-    height: auto;
+    position: static;
+    border: 1px solid black;
+    margin: 0 0.5rem 4rem auto; /* margin-left fills the rest of the space*/
+}
+
+/* Shopping basket icon */
+#basket-icon {
+    display: inline-block;
+    position: static;
+    width: 2rem;
+    height: 2rem;
 }
 
 /* Basket number of items indicator */
 #basket-num-indicator {
     display: inline-block;
-    position: relative;
-    padding: 0.2em;
-    margin: 0;
-    left: 75%;
-    top: 75%;
-    background: #FFAC31;
+    position: static;
+    padding: 0.2rem;
+    margin: 0 -2rem -2rem 0;
+    left: 2.75rem;
+    top: 2.75rem;
     border-radius: 50%;
+    background: #FFAC31;
 }
