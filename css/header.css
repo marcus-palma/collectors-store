@@ -1,14 +1,19 @@
+@font-face {
+    font-family: "Marcellus";
+    src: url(../../../fonts/marcellus/Marcellus-Regular.ttf);
+}
+
+@font-face {
+    font-family: "Marcellus SC";
+    src: url(../../../fonts/marcellus-sc/MarcellusSC-Regular.ttf);
+}
+
 * {
     display: block;
 }
 
 /* Header outer container */
 #header-outer {
-    /*
-    display: flex;
-    flex-direction: column;
-    flex: 1 0;
-    */
     position: fixed;
     left: 0;
     top: 0;
@@ -16,7 +21,7 @@
     z-index: 2;
 }
 
-/* Header inner strip container with key terms */
+/* Header inner strip container with key Terms-of-Service */
 #header-keyterms {
     position: static;
     width: 100%;
@@ -30,6 +35,12 @@
     column-gap: 7vw;
 }
 
+/* Key Terms-of-Service span descendants */
+#header-keyterms span {
+    font-family: "Marcellus";
+    font-size: 0.9rem;
+}
+
 /* Header inner main container */
 #header-inner {
     display: grid;
@@ -37,33 +48,36 @@
     width: 100%;
     height: 124px;
     background: #FFF290;
-    grid-template-columns: 0.5fr 0.5fr 2.5rem 2fr 1fr;
+    grid-template-columns: 1fr 2fr 1fr;
     grid-auto-rows: auto;
     align-items: end;
     gap: 0;
 }
 
-/* Header first grid row fraction container with logos and full-menu button
-#header-first-row-fraction {
-    display: inline-flex;
+/* Header Logo Title and Icon container */
+#header-logo-container {
+    display: flex;
     position: static;
-    flex-direction: row;
-    flex: 1 0;
-    align-items: end;
-    justify-content: center;
-    border: 1px solid black;
-}s
-*/
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 96px;
+    justify-content: flex-start;
+    align-items: flex-end;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
 
 /* Logo title */
 #logo-title {
     display: inline-block;
     position: static;
     object-fit: contain;
+    min-width: 156px;
     max-width: 100%;
-    max-height: 100%;
+    /* min-height: 78px; */
+    max-height: 96px;
     padding: 0;
-    margin: 0 0 0.5rem 0.5rem;
+    margin: 0 -12px 8px 8px;
 }
 
 /* Logo icon */
@@ -71,72 +85,82 @@
     display: inline-block;
     position: static;
     object-fit: contain;
+    min-width: 103px;
     max-width: 100%;
-    max-height: 100%;
-    padding: 0;
-    margin: 0;
+    max-height: 119px;  /* test: inherit and a 6px margin */
+    justify-self: start;
+    padding: 0 0 0 0;
+    margin: 0 4rem 0 0;
 }
 
 
 /* Full menu button icon */
 #nav-full-menu-button {
-    display: inline-block;
-    position: static;
-    min-width: 2rem;
-    min-height: 2rem;
+    display: block;
+    position: absolute;
+    top: -0.1rem;
+    left: -2.5rem;
+    width: 2rem;
+    height: 2rem;
     padding: 0;
-    margin: 0 0.5rem 4rem 0;
+    margin: 0;
+    /* z-index may be needed because of absolute position with negative margin*/
 }
 
 /* Navigation Middle Bar Container */
 #nav-middle-bar-container {
-    /* Flexbox version */
     display: inline-flex;
     position: static;
     width: auto;
-    height: 6rem;
+    height: auto;
     padding: 0;
-    border: 1px solid black;
-    margin: 0;
-    flex-direction: column-reverse;
-    
-
-    /* (Placed in a Grid version)
-    display: inline-block;
-    padding: 0;
-    border: 1px solid black;
-    margin: 0;
-    */
+    /* border: 1px solid black; */
+    margin: 29px 0 0;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
-/* Navigation search bar */
+/* Navigation Search bar */
 #nav-search-bar {
     display: inline-block;
-    box-sizing: border-box;
-    position: static;
+    position: relative; /* Needed for offsetting Basket container with absolute positioning */
     width: auto;
-    padding: 0.2rem;
+    padding: 0.3rem 0.6rem;
     background: #FFFFFF;
+}
+
+/* Navigation Search bar Input */
+#nav-search-bar-input {
+    font-family: "Marcellus";
+    font-size: 1.0rem;
 }
 
 /* Navigation quick-access menu container */
 #nav-quick-menu {
     display: inline-flex;
-    position: absolute;
+    position: static;
     width: 50vw;
-    border: 1px solid black;
-    margin: 0, auto;    /* Center horizontally within Header Inner Main Container */
+    /* border: 1px solid black; */
+    margin: 0.6rem 0.7rem;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
 }
 
+/* Navigation Quick-access menu span children */
+#nav-quick-menu > span {
+    font-family: "Marcellus SC";
+    font-size: 1.3rem;
+}
+
 /* Shopping basket container */
 #basket-container {
-    display: inline-block;
-    position: static;
-    border: 1px solid black;
-    margin: 0 0.5rem 4rem auto; /* margin-left fills the rest of the space*/
+    display: block;
+    position: absolute;
+    top: 0;
+    right: -2.5rem;
+    /* border: 1px solid black; */
+    margin: 0;
 }
 
 /* Shopping basket icon */
@@ -150,11 +174,11 @@
 /* Basket number of items indicator */
 #basket-num-indicator {
     display: inline-block;
-    position: static;
+    position: absolute;
     padding: 0.2rem;
-    margin: 0 -2rem -2rem 0;
-    left: 2.75rem;
-    top: 2.75rem;
+    margin: 0;
+    bottom: -0.4rem;
+    right: -1rem;
     border-radius: 50%;
     background: #FFAC31;
 }
