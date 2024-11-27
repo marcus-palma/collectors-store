@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
     <body>
-        <!-- Header outer container. Flexes to #header-keyterms -->
+        <!-- Header outer container -->
         <header id="header-outer" aria-label="Header section with title and navigation">
             <!-- Strip advertising key terms-of-service. Resizes with font height -->
             <section id="header-keyterms">
@@ -24,7 +24,7 @@
                 </div>
             </section>
             <!-- Header inner main container -->
-            <nav id="header-inner" aria-label="Header with logo and navigation">
+            <nav id="header-inner-main-container" aria-label="Header with logo and navigation">
                 <!-- Header Logo Title and Icon container -->
                 <div id="header-logo-container">
                     <!-- Logo title -->
@@ -41,7 +41,7 @@
                         <!-- Search bar display text -->
                         <span id="nav-search-bar-input" contenteditable="true">Search for your next mystery...</span>
                         <!-- Navigation Search bar icon -->
-                        <img id="nav-search-icon" src="../../../icons/Ankh icon mine.png"> <!-- TODO add src -->
+                        <img id="nav-search-icon" src="../../../icons/Ankh icon mine.png">
                         <!-- Shopping basket container -->
                         <div id="basket-container">
                             <!-- Shopping Basket icon -->
@@ -61,9 +61,10 @@
                         <span>Greek</span>
                         <span>Chinese</span>
                         <span>Nordic</span>
-                    </nav>    
+                    </nav>
                 </div>
-
+                <!-- Navigation Narrowscreen Search button. Should not occupy a Grid Track -->
+                <img id="nav-narrowscreen-search-button" src="../../../icons/Ankh icon mine.png">
             </nav>
         </header>
     </body>
