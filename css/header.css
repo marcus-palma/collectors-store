@@ -1,13 +1,3 @@
-@font-face {
-    font-family: "Marcellus";
-    src: url(../../../fonts/marcellus/Marcellus-Regular.ttf);
-}
-
-@font-face {
-    font-family: "Marcellus SC";
-    src: url(../../../fonts/marcellus-sc/MarcellusSC-Regular.ttf);
-}
-
 /* Header outer container */
 #header-outer {
     display: block;
@@ -23,14 +13,14 @@
     display: block;
     position: static;
     width: 100%;
-    height: 3rem;
-    background:#FFAC31;
+    background: #FFAC31;
     display: flex;
     flex-direction: row;
     flex: 1 0;
     align-items: center;
     justify-content: center;
     column-gap: 7vw;
+    padding: 9px 0;
 }
 
 /* Key Terms-of-Service span descendants */
@@ -154,7 +144,7 @@
     column-gap: 1.6rem;
 }
 
-/* Navigation Quick-access menu span children */
+/* Navigation Quick-access menu span children (widescreen only) */
 #nav-quick-menu > span {
     font-family: "Marcellus SC";
     font-size: 1.3rem;
@@ -183,7 +173,7 @@
     height: 2rem;
 }
 
-/* Basket number of items indicator */
+/* Shopping basket number of items indicator */
 #basket-num-indicator {
     display: inline-block;
     position: absolute;
