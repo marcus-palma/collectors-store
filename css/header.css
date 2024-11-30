@@ -16,7 +16,6 @@
     background: #FFAC31;
     display: flex;
     flex-direction: row;
-    flex: 1 0;
     align-items: center;
     justify-content: center;
     column-gap: 7vw;
@@ -185,20 +184,30 @@
     background: #FFAC31;
 }
 
-/* Screen size switch (desktop-first design)
-@media screen and (width >= 1060px) {
+/* Viewport that is less than 1070px wide */
+@media (width < 1070px) {
+
+    /* Quick-access menu width management in narrow viewports */
+    #header-inner-main-container {
+        grid-template-columns: 319px 2fr 4rem;    /* Maintain horizontal position of all elements, and leave a gap for the Shopping basket */
+    }
+
+    /* #header-logo-container {
+        max-width: min-content; Prevent jump in size at breakpoint
+    } */
+    
     #nav-search-bar {
-        visibility: visible;
-        position: absolute;
+        margin-bottom: 2.8rem;  /* Put a margin as a placeholder to maintain the Search bar vertical position */
     }
 
     #nav-quick-menu {
-        visibility: visible;
+        position: absolute; /* Take the Quick-access menu out of context, but still maintain the position in Grid Track */
     }
-} */
+    /********************************************************/
+}
 
 /* Media query for a narrow screen in a desktop-first design */
-@media screen and (width < 1060px) {
+/* @media screen and (width < 1060px) */ #disabled {
     /* Header inner main container */
     #header-inner-main-container {
         grid-template-columns: 1fr;
