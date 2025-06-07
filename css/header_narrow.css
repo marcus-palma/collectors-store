@@ -1,9 +1,12 @@
 /* Header outer container */
+body {
+    display: block;
+    margin: 0;
+}
+
 #header-outer {
     display: block;
     position: fixed;
-    left: 0;
-    top: 0;
     width: 100vw;
     min-width: 409px;
     z-index: 2;
