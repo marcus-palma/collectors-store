@@ -1,10 +1,11 @@
-/* Header outer container */
+/* <body> element styling for overriding user agent default style */
 body {
     display: block;
     margin: 0;
 }
 
-#header-outer { /* new */
+/* Header outer container */
+#header-outer {
     display: grid;
     position: relative;
     width: 100vw;
