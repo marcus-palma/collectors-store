@@ -4,38 +4,14 @@ body {
     margin: 0;
 }
 
-#header-outer {
-    display: block;
-    position: fixed;
-    width: 100vw;
-    min-width: 409px;
-    z-index: 2;
-    box-shadow: 0 4px 4px 0 rgb(0 0 0 / 15%);
-}
-
-/* Header inner strip container with key Terms-of-Service */
-#header-keyterms {
-    display: flex;
-    position: static;
-    background: #FFAC31;
-    flex-direction: row;
-    justify-items: center;
-    justify-content: space-evenly;
-    align-items: center;
-    padding: 9px 5vw; 
-}
-
-/* Key Terms-of-Service span descendants */
-#header-keyterms span {
-    font-family: "Marcellus";
-    font-size: 0.9rem;
-}
-
-/* Header inner main container */
-#header-inner-main-container {
+#header-outer { /* new */
     display: block;
     position: relative;
-    width: 100%;
+    width: 100vw;
+    min-width: 409px;
+    padding-top: 0.5rem;
+    z-index: 2;
+    box-shadow: 0 4px 4px 0 rgb(0 0 0 / 15%);
     background: #FFF290;
 }
 
@@ -45,23 +21,22 @@ body {
     position: static;
     justify-content: center;
     align-items: flex-end;
-    padding-top: 5px;
 }
 
 /* Logo title */
 #logo-title {
     display: inline-block;
     position: static;
-    height: 6rem;
+    height: 3.7rem;
     margin-right: -12px;
+    margin-bottom: 0.3rem;
 }
 
 /* Logo icon */
 #logo-icon {
     display: inline-block;
     position: static;
-    height: 7rem;
-    margin-right: 0;
+    height: 4rem;
 }
 
 /* Full menu button icon */
@@ -119,7 +94,6 @@ body {
     margin: 0 1rem 0;
 }
 
-
 /* Navigation Search bar */
 #nav-search-bar {
     display: block;
@@ -133,6 +107,7 @@ body {
 #nav-search-bar-input {
     font-family: "Marcellus";
     font-size: 1.0rem;
+    white-space: nowrap;    /* No word wrap */
 }
 
 /* Navigation Search bar Icon*/
@@ -146,13 +121,7 @@ body {
 }
 
 @media screen and (width < 45rem) {
-    #header-keyterm-3 {
-        display: none;
-    }
-
+    
     @media (width < 30rem ) {
-        #header-keyterm-2 {
-            display: none;    
-        }
     }
 }
