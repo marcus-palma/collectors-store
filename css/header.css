@@ -1,0 +1,5 @@
+/* <body> element styling for overriding user agent default style */
+body {
+    display: block;
+    margin: 0;
+}
