@@ -1,60 +1,113 @@
 "use strict";
 
-// Important variables
+///////////////////////////////////////////
+//  Script scoped variables
+///////////////////////////////////////////
+
+// Server prefix URL kept in one place for appending filepaths easily 
 const serverBaseURL = "http://localhost:8000"
+
+// Map for keeping track of fetched data used for dynamic DOM manipulation
+// Structure: URL<string>, { data:value<string>, inserted:value<boolean> }
+let fetchedDataMap = new Map();
+
+// DOM objects
+let bodyElement;
+let searchButtonMobile;
+
+// Media Query List for narrow screens
+let MediaQueryListNarrow;
+
+
+///////////////////////////////////////////
+// Document load events
+///////////////////////////////////////////
+
+// Listen for DOMContentLoaded event
+document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
+
+// Define event handler for DOMContentLoaded event
+function handleDOMContentLoaded() {
+    initializePlatformSwitch();
+    
+    // TODO: Defer this until mobile version is loaded
+    // initializeSearchButtonMobile();
+}
 
 
 /////////////////////////////////////////////////////////////
 //  Routine for switching HTML structure based on platform 
-//
+/////////////////////////////////////////////////////////////
 
-// Get header slot element
-const bodyElement = document.querySelector("body");
+function initializePlatformSwitch() {
+    // Get <body> element as a target for inserting content
+    bodyElement = document.querySelector("body");
 
-// Create MediaQueryList object for narrow screen
-const mediaQueryListNarrow = matchMedia(
-    "(width < 900px) or (orientation: portrait)"
-);
+    // Create MediaQueryList object for narrow screen
+    mediaQueryListNarrow = matchMedia(
+        "(width < 900px) or (orientation: portrait)"
+    );
 
-// Attach event listener to the MediaQueryList object for resize event
-window.addEventListener("resize", handleResize);
-
-switchHeaderHTMLFile();
+    // Attach event listener to the MediaQueryList object for resize event
+    window.addEventListener("resize", handleResize);
+    
+    switchHeaderHTML();
+}
 
 // Routine when resize event fires
 function handleResize(event) {
-    switchHeaderHTMLFile();
+    switchHeaderHTML();
 }
 
 // Switch header component for wide and narrow screen version
-function switchHeaderHTMLFile() {
+function switchHeaderHTML() {
     // Check MediaQueryList object
-    let HTMLFileRelativePath;
+    let relativePath;
     if (mediaQueryListNarrow.matches) {
-        HTMLFileRelativePath = "/source/collectors-store/html/header_narrow.html";
+        relativePath = "/source/collectors-store/html/header_narrow.html";
     }
     else {
-        HTMLFileRelativePath = "/source/collectors-store/html/header_wide.html";
+        relativePath = "/source/collectors-store/html/header_wide.html";
     }
-    fetchHTMLFileAndInsertContentIntoSlot(HTMLFileRelativePath);
+
+    // Check if required data already is inserted into the DOM
+
+
+    // Check if required data is already cached in this script context
+    const url = serverBaseURL + relativePath;
+    if (fetchedDataMap.has(url)) {
+        // Then get the cached data for next step
+        const dataRecord = fetchedDataMap.get(url);
+
+        // Check if the required data is already inserted in the DOM
+        if (dataRecord.inserted) {
+            return;
+        } else {
+            // Otherwise, insert the required data into the DOM
+            insertHTML(dataRecord.data);
+        }
+    } else {
+        // Otherwise, fetch the data and then insert into the DOM
+        fetchHTMLAndInsert(url);
+    }
 }
 
-function fetchHTMLFileAndInsertContentIntoSlot (HTMLFileRelativePath) {
-    if (HTMLFileRelativePath && typeof HTMLFileRelativePath === "string") {
-        fetchHTMLFile(HTMLFileRelativePath)
-        .then((HTMLContent) => {
-            insertHTMLContentIntoSlot(HTMLContent, "div", bodyElement)
+function fetchHTMLAndInsert (url) {
+    if (url && typeof url === "string") {
+        fetchHTML(url)
+        .then((content) => {
+            insertHTML(content, bodyElement, "div")
+            return Promise.resolve(true);
         })
         .catch((error) => {
-            console.error(`fetchHTMLFileAndInsertContentIntoSlot - Thrown error in promise chain: ${error}`)
+            console.error(`fetchHTMLAndInsert - Caught error while fetching and inserting HTML data: ${error}`)
         });
     } else {
-        console.error("fetchHTMLFileAndInsertContentIntoSlot - HTMLFileName has a falsy value or is not a string type");
+        console.error("fetchHTMLAndInsert - HTMLFileName has a falsy value or is not a string type");
     }
 }
 
-function fetchHTMLFile (HTMLRelativePath) {
-    const url = `${serverBaseURL}/${HTMLRelativePath}`;
+function fetchHTML (url) {
     return fetch(url)
         .then((response) => {
             if (response.ok) {
@@ -64,36 +117,55 @@ function fetchHTMLFile (HTMLRelativePath) {
                 throw new Error(`HTTP error - status code: ${response.status}`);
             }
         })
-    // Note: This function does not catch its own errors. Error handling needs to be deferred to outer function.  
+        .catch((error) => {
+            console.error(`fetchHTML - Caught error while fetching HTML data: ${error}`);
+        })
 }
 
-function insertHTMLContentIntoSlot (HTMLContent, containerType, slotElement) {
-    if (HTMLContent && containerType && slotElement) {
+function insertHTML (content, targetElement, containerType, sourceURL) {
+    // Validate mandatory arguments
+    if (!(content && targetElement && sourceURL)) {
+        throw new Error("insertHTML function received mandatory arguments with at least one falsy value");
+    }
+
+    // Check if the optional argument containerType is specified in this function call
+    if (typeof containerType !== "undefined") {
+        
+        // Wrap the HTML content by creating a container with specfied type
         const container = document.createElement(containerType);
-        container.innerHTML = HTMLContent;
-        slotElement.appendChild(container);
-        return Promise.resolve(true);
-    } else return Promise.reject("insertHTMLContentIntoSlot function received arguments with at least one falsy value");
-}
+        container.innerHTML = content;
 
-/////////////////////////////////////////////////////////////
+        // Insert the wrapped HTML content into the target element
+        targetElement.appendChild(container);
+
+    } else {
+        // Otherwise, just insert the HTML content directly into the target element
+        targetElement.appendChild(content);
+    }
+
+    // Register the inserted HTML content and that it's currently used in the DOM
+    fetchedDataMap.set(sourceURL, { data:content, inserted:true });
+
+    return Promise.resolve(true);
+}
 
 
 ///////////////////////////////////////////////////
 //  Routine for search button in mobile version
-//
+///////////////////////////////////////////////////
 
-// Get search button in mobile version
-const searchButtonMobile = document.querySelector("#nav-search-button.mobile");
-
-// Attach event listener to search button in mobile version
-const searchButtonType = typeof searchButtonMobile;
-if (searchButtonType !== "undefined" && searchButtonType !== "null" && searchButtonMobile != null) {  // Needs better validation
-    searchButtonMobile.addEventListener("click", handleSearchButtonClick);
+function initializeSearchButtonMobile() {
+    searchButtonMobile = document.querySelector("#nav-search-button.mobile");
+    
+    // Attach event listener to search button in mobile version
+    const searchButtonType = typeof searchButtonMobile;
+    if (searchButtonType !== "undefined" && searchButtonType !== "null" && searchButtonMobile != null) {  // TODO: better validation
+        searchButtonMobile.addEventListener("click", handleSearchMobileClick);
+    }
 }
 
 // Define event handler for search button in mobile version
-function handleSearchButtonClick(event) {
+function handleSearchMobileClick(event) {
     if (searchButtonMobile) {
         const display = searchButtonMobile.style.display;
 
@@ -101,14 +173,12 @@ function handleSearchButtonClick(event) {
         // Background: HTML and CSS is already set up statically in files
         switch (display) {
             case "none":
-                searchbuttonMobile.style.display = "block";
+                searchButtonMobile.style.display = "block";
                 break;
             case "block":
-                searchbuttonMobile.style.display = "none";
+                searchButtonMobile.style.display = "none";
         }
     } else {
-        console.error("searchButonMobile reference variable has a falsy value");
+        console.error("searchButtonMobile reference variable has a falsy value");
     }
 }
-
-///////////////////////////////////////////////////
