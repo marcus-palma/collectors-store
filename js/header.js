@@ -20,8 +20,8 @@ const fetchedDataMap = new Map();
 const insertedDataSet = new Set();
 
 // DOM objects
-let searchButtonMobile;
-let searchButtonContainerMobile;
+let mobileSearchButton;
+let mobileSearchButtonContainer;
 
 // Media Query List for narrow screens
 let mediaQueryListNarrow;
@@ -179,12 +179,12 @@ function insertHTML (content, targetElement, containerType, sourceURL) {
 function headerOnDOMInsert(insertedURL) {
     // Check if the mobile header HTML was currently inserted
     if (insertedURL == headerNarrowHTMLURL) {
-        initializeSearchButtonMobile();
+        initializeMobileSearchButton();
     }
 
     // Check if the mobile header HTML has been replaced by any other header representation
     else if (insertedDataSet.has(headerNarrowHTMLURL)) {
-        searchButtonMobileOnRemove();
+        mobileSearchButtonOnRemove();
 
         // Finally, delete it from the set
         insertedDataSet.delete(headerNarrowHTMLURL);
@@ -209,17 +209,17 @@ function headerOnDOMInsert(insertedURL) {
 ///////////////////////////////////////////////////
 
 // Routine needs to be run everytime the mobile representation of the header component is loaded
-function initializeSearchButtonMobile() {
-    searchButtonMobile = document.querySelector("#nav-search-button.mobile");
-    searchButtonContainerMobile = document.querySelector("#nav-search-bar-container");
+function initializeMobileSearchButton() {
+    mobileSearchButton = document.querySelector("#nav-search-button.mobile");
+    mobileSearchButtonContainer = document.querySelector("#nav-search-bar-container");
 
     // Validate the mobile search button element variable, otherwise, do nothing. TODO: improve validation
-    const searchButtonType = typeof searchButtonMobile;
-    if (typeof searchButtonMobile !== "undefined" && typeof searchButtonMobile !== "null" && searchButtonMobile != null) {
+    const searchButtonType = typeof mobileSearchButton;
+    if (typeof mobileSearchButton !== "undefined" && typeof mobileSearchButton !== "null" && mobileSearchButton != null) {
         // Check if the mobile search button mobile element is currently inserted into the DOM
-        if (document.body.contains(searchButtonMobile)) {
+        if (document.body.contains(mobileSearchButton)) {
             // Attach event listener to search button in mobile version
-            searchButtonMobile.addEventListener("click", handleSearchClickMobile);
+            mobileSearchButton.addEventListener("click", handleMobileSearchClick);
         } else {
             console.error("initializeSearchButtonMobile - Expected mobile search button element to be a descendant of body element, but returned false");
         }
@@ -228,27 +228,28 @@ function initializeSearchButtonMobile() {
     }
 }
 
-function searchButtonMobileOnRemove() {
-    searchButtonMobile.removeEventListener("click", handleSearchClickMobile);
+function mobileSearchButtonOnRemove() {
+    mobileSearchButton.removeEventListener("click", handleMobileSearchClick);
 }
 
 // Define event handler for search button in mobile version
-function handleSearchClickMobile(event) {
-    if (searchButtonContainerMobile) {
-        const display = searchButtonContainerMobile.style.display;
-
+function handleMobileSearchClick(event) {
+    if (mobileSearchButtonContainer) {
         // Switch between "block" and "none" values from CSS property "display"
-        // Background: HTML and CSS is already set up statically in files
-        switch (display) {
+        // Reason: HTML and CSS for both states are already set up statically in files, and only needs a switch on display property
+        const currentDisplay = mobileSearchButtonContainer.style.display;
+        let newDisplay;
+        switch (currentDisplay) {
             case "none":
-                searchButtonContainerMobile.style.display = "block";
+                newDisplay = "block";
                 break;
             case "block":
-                searchButtonContainerMobile.style.display = "none";
+                newDisplay = "none";
                 break;
             default:
-                searchButtonContainerMobile.style.display = "block";
+                newDisplay = "block";
         }
+        mobileSearchButtonContainer.style.display = newDisplay;
     } else {
         console.error("searchButtonMobile reference variable has a falsy value");
     }
