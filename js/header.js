@@ -37,9 +37,6 @@ document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
 // Define event handler for DOMContentLoaded event
 function handleDOMContentLoaded() {
     initializePlatformSwitch();
-    
-    // TODO: Defer this until mobile version is loaded
-    // initializeSearchButtonMobile();
 }
 
 
@@ -47,6 +44,7 @@ function handleDOMContentLoaded() {
 //  Routine for switching HTML structure based on media
 /////////////////////////////////////////////////////////////
 
+// One-time setup for header for switchHeaderHTML routine
 function initializePlatformSwitch() {
     // Create MediaQueryList object for narrow screen
     mediaQueryListNarrow = matchMedia(
@@ -56,6 +54,7 @@ function initializePlatformSwitch() {
     // Attach event listener to the MediaQueryList object for resize event
     window.addEventListener("resize", handleResize);
     
+    // Initialize header representation by running the switch function
     switchHeaderHTML();
 }
 
@@ -64,101 +63,75 @@ function handleResize(event) {
     switchHeaderHTML();
 }
 
-// Switch header component for wide and narrow screen version
+// Switch or initialize header component for wide and narrow screen version
+// Instruction: Run this at least once after the DOM is loaded, and let "resize" event run this for updates
 function switchHeaderHTML() {
     // Check with MediaQueryList object if the screen size is narrow
     let url;
-    if (mediaQueryListNarrow.matches) {
-        url = headerNarrowHTMLURL;
-    }
-    else {
-        url = headerWideHTMLURL;
-    }
+    if (mediaQueryListNarrow.matches)   url = headerNarrowHTMLURL;
+    else                                url = headerWideHTMLURL;
 
     // Check if the required data is already inserted into the DOM
-    if (insertedDataSet.has(url)) {
-        return;
-    } 
+    // Then do no changes in header and return
+    if (insertedDataSet.has(url)) return;
 
     // Check if required data is already cached in this script scope    
-    if (fetchedDataMap.has(url)) {
-        // Then get the cached data for next step
-        const fetchRecord = fetchedDataMap.get(url);
+    const insertPromise = new Promise((resolve, reject) => {
+        if (fetchedDataMap.has(url)) {
+            // Then get the cached data and resolve with it as "HTMLData" argument
+            const fetchRecord = fetchedDataMap.get(url);
+            resolve(fetchRecord);
+        } else {
+            // Otherwise, fetch the HTML data and resolve with the result
+            fetchHTML(url)
+            .then((HTMLData) => {
+                // Cache the fetched HTML data
+                fetchedDataMap.set(url, HTMLData);
 
-        // Insert the cached HTML data
-        insertHTML(fetchRecord, document.body, "div", url)
-        .then(headerOnDOMInsert)
-        .catch((error) => console.error(`switchHeaderHTML - Caught error in Promise chain after insertHTML: ${error}`));
-    } else {
-        // Otherwise, fetch the data and then insert into the DOM
-        fetchHTMLAndInsert(url)
-        .then(headerOnDOMInsert)
-        .catch((error) => console.error(`switchHeaderHTML - Caught error in Promise chain after fetchHTMLandInsert: ${error}`));
-    }
+                // Resolve the promise executor with the fetched HTML data
+                resolve(HTMLData);
+            })
+            .catch((error) => reject(`switchHeaderHTML - Caught error when fetching HTML data: ${error}`));
+        }
+    })
+    // After getting HTML Data, pre-render it before inserting
+    .then((HTMLData) => preRenderHTMLAndInsert(HTMLData, "div", "100vw", "6rem", (container) => {
+        // Defining the onInsert callback function for preRenderHTMLAndInsert function
+        // Replace existing child node with the pre-rendered container
+        document.body.replaceChild(container, document.body.firstChild);
+    }))
+    .then(() => {
+        // After inserting the HTML data, run OnDomInsert routine of header
+        try { headerOnDOMInsert(url) }
+        catch (e) { return Promise.reject(`switchHeaderHTML - Caught error when calling HeaderOnDOMInsert function: ${error}`) }
+    })
+    .catch((error) => console.error(`switchHeaderHTML - Caught error at the end of promise chain: ${error}`));
 }
 
-function fetchHTMLAndInsert (url) {
-    if (url && typeof url === "string") {
-        return fetchHTML(url)
-        .then((content) => {
-            insertHTML(content, document.body, "div", url)
-            .catch((error) => {
-                console.error(`fetchHTMLAndInsert - Caught error while inserting HTML: ${error}`)
-            });
-        })
-        .catch((error) => {
-            return Promise.reject(`fetchHTMLAndInsert - Caught error while fetching and inserting HTML data: ${error}`);
-        });
-    } else {
-        return Promise.reject("fetchHTMLAndInsert - HTMLFileName has a falsy value or is not a string type");
-    }
-    // Fallback return for any potential future coding mistakes, to make debugging easier
-    return Promise.reject("fetchHTMLAndInsert - fallback return. This should not fire");
-}
-
+// Generalized utility function for fetching HTML data
 function fetchHTML (url) {
     return fetch(url)
         .then((response) => {
-            if (response.ok) {
-                return response.text();
-                //return Promise.resolve(response.url, response.text());
-            }
-            else {
-                Promise.reject(`HTTP error - status code: ${response.status}`);
-            }
+            if (response.ok) return response.text();
+            else return Promise.reject(`fetchHTML - HTTP error with status code: ${response.status}`);
         })
-        .then((content) => {
-            // Cache the fetched HTML content
-            // Warning: responseURL may be altered by redirects, potentially different from sourceURL
-            //fetchedDataMap.set(responseURL, content);
-
-            // Return back to outer promise chain with resolve promise
-            return Promise.resolve(content);
-        })
-        .catch((error) => {
-            console.error(`fetchHTML - Caught error while fetching HTML data: ${error}`);
-        })
+        .catch((error) => console.error(`fetchHTML - Caught error while fetching HTML data: ${error}`));
 }
 
-/** @param {string} content
+/** Generalized utility function for inserting HTML data directly into the DOM. Returns true on success, throws error on failure
+* @param {string} content
 * @param {object} targetElement
 * @param {string} containerType - (optional)
 * @param {string} sourceURL
-* @param {boolean} doReplace
 */
-function insertHTML (content, targetElement, containerType, sourceURL) {
+function insertHTMLDirectly (content, targetElement, containerType, sourceURL) {
     // Validate mandatory arguments
-    if (!(content && targetElement && sourceURL)) {
-        // An outer catch promise is expected to handle this throwing error
-        return Promise.reject("insertHTML - mandatory arguments have at least one falsy value");
-    }
+    if (!(content && targetElement && sourceURL)) { throw "insertHTML - mandatory arguments have at least one falsy value" };
 
     // Check if the optional argument containerType is specified in this function call
     if (typeof containerType !== "undefined") {
         
-        // Wrap the HTML content by creating a container with specfied type
-        //const container = document.createElement(containerType);
-        //container.innerHTML = content;
+        // Wrap the HTML content with the specfied container element type 
         const wrappedContent = `<${containerType}>${content}</${containerType}>`;
 
         // Insert the wrapped HTML content into the target element
@@ -172,11 +145,79 @@ function insertHTML (content, targetElement, containerType, sourceURL) {
     // Cache the fetched HTML content
     fetchedDataMap.set(sourceURL, content);
 
-    // Return back to outer promise chain with resolve promise
-    return Promise.resolve(sourceURL);
+    // Return true for success
+    return true;
 }
 
+/** Utility function for pre-rendering HTML data off-screen and then inserting it to the DOM. Returns the resulting element after waiting for one MutationObserver and two requestAnimationFrame callbacks.
+* @param {string} content
+* @param {string} containerType
+* @param {string} CSSWidth - CSS text
+* @param {string} CSSHeight - CSS text
+* @param {function} onInsert - Callback for defining the behavior of inserting the resulting element. Allows optimal timing for insertion and internal cleanup
+*/
+function preRenderHTMLAndInsert (content, containerType, CSSWidth, CSSHeight, onInsert) {
+    // Validate mandatory arguments
+    if (!(content && containerType, CSSWidth, CSSHeight)) return Promise.reject("preRenderHTML - mandatory arguments have at least one falsy value");
+    if (typeof content !== "string") return Promise.reject("preRenderHTML - content argument is not a string");
+    if (typeof containerType !== "string") return Promise.reject("preRenderHTML - containerType argument is not a string");
+    if (typeof CSSWidth !== "string") return Promise.reject("preRenderHTML - CSSWidth argument is not a string");
+    if (typeof CSSHeight !== "string") return Promise.reject("preRenderHTML - CSSHeight argument is not a string");
+    if (typeof onInsert !== "function") return Promise.reject("preRenderHTML - onInsert argument is not a function");
+
+    // Create container element specified as argument and validate the result
+    const container = document.createElement(containerType);
+    if (container === null) return Promise.reject("insertHTMLWithObserver - createElement resulted in a null element");
+    
+    // Setup container to render HTML data off-screen before presentation
+    container.style.cssText = `
+        display: block;
+        position: absolute;
+        top: -5000px;
+        width: ${CSSWidth};
+        height: ${CSSHeight};
+        `
+
+    // Add container to the DOM for pre rendering
+    document.body.appendChild(container);
+
+    // Use a Mutation Observer to wait for the inserted HTML data to be parsed the user agent. Layout would be finished
+    return new Promise ((resolve, reject) => {
+        const observer = new MutationObserver(() => {
+            // Once fired, disconnect the observer
+            observer.disconnect();
+            
+            // After waiting for Mutation Observer, wait more for two animation frames
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    // Call onInsert callback before doing cleanup
+                    onInsert(container);
+
+                    // Unset container style after rendering HTML data off-screen
+                    container.removeAttribute("style");
+
+                    // Continue outer promise chain
+                    resolve(container);
+                })
+            })
+        })
+
+        // After setting up the observer, activate it
+        observer.observe(container, {
+            subtree: true,
+            childList: true
+        });
+
+        // After activating the observer, insert the HTML data into the created container
+        container.innerHTML = content;
+    });
+}
+
+// Work on header to run after inserting HTML into the DOM. Returns true on success, throws error on failure
 function headerOnDOMInsert(insertedURL) {
+    // Check if the inserted URL argument is undefined, then throw error to outer caller
+    if (typeof insertedURL === "undefined") throw "headerOnDOMInsert - insertedURL argument is undefined";
+
     // Check if the mobile header HTML was currently inserted
     if (insertedURL == headerNarrowHTMLURL) {
         initializeMobileSearchButton();
@@ -184,8 +225,8 @@ function headerOnDOMInsert(insertedURL) {
 
     // Check if the mobile header HTML has been replaced by any other header representation
     else if (insertedDataSet.has(headerNarrowHTMLURL)) {
+        // Then call the OnRemove routine for mobile search button
         mobileSearchButtonOnRemove();
-
         // Finally, delete it from the set
         insertedDataSet.delete(headerNarrowHTMLURL);
     }
@@ -199,8 +240,8 @@ function headerOnDOMInsert(insertedURL) {
     // Finally, after using the set of inserted data, add the currently inserted URL into the set
     insertedDataSet.add(insertedURL);
 
-    // Return outer promise chain with a resolve promise
-    return Promise.resolve(true);
+    // Return true for success
+    return true;
 }
 
 
@@ -220,14 +261,13 @@ function initializeMobileSearchButton() {
         if (document.body.contains(mobileSearchButton)) {
             // Attach event listener to search button in mobile version
             mobileSearchButton.addEventListener("click", handleMobileSearchClick);
-        } else {
-            console.error("initializeSearchButtonMobile - Expected mobile search button element to be a descendant of body element, but returned false");
         }
-    } else {
-        console.error("initializeSearchButtonMobile - Expected to find mobile search button element, but failed");
+        else console.error("initializeSearchButtonMobile - Expected mobile search button element to be a descendant of body element, but returned false");
     }
+    else console.error("initializeSearchButtonMobile - Expected to find mobile search button element, but failed");
 }
 
+// Work to do after removing mobile search button
 function mobileSearchButtonOnRemove() {
     mobileSearchButton.removeEventListener("click", handleMobileSearchClick);
 }
@@ -250,7 +290,6 @@ function handleMobileSearchClick(event) {
                 newDisplay = "block";
         }
         mobileSearchButtonContainer.style.display = newDisplay;
-    } else {
-        console.error("searchButtonMobile reference variable has a falsy value");
     }
+    else console.error("searchButtonMobile reference variable has a falsy value");
 }
