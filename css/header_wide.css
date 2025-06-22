@@ -39,6 +39,8 @@ body {
     display: inline-block;
     position: static;
     object-fit: contain;
+    width: auto !important; /* Override HTML attributes */
+    height: auto !important;
     min-width: 9rem;
     max-width: 100%;
     max-height: 5rem;
@@ -50,6 +52,8 @@ body {
     display: inline-block;
     position: static;
     object-fit: contain;
+    width: auto !important; /* Override HTML attributes */
+    height: auto !important;
     min-width: 5.162rem;
     max-width: 100%;
     min-height: 5.162rem;
@@ -84,30 +88,33 @@ body {
     justify-content: flex-end;
 }
 
-/* Navigation Search bar */
-#nav-search-bar {
+/* Navigation search bar container */
+#nav-search-bar-container {
     display: inline-block;
     position: relative; /* Needed for offsetting Basket container with absolute positioning */
-    width: auto;
-    padding: 0.3rem 0.6rem;
-    background: #FFFFFF;
+    width: 100%;
+    height: auto;
 }
 
 /* Navigation Search bar Input */
 #nav-search-bar-input {
+    display: block;
+    position: static;
+    width: 100%;
+    padding: 0.3rem 2.4rem 0.3rem 0.6rem; /* Leave space for the icon on the right*/
     font-family: "Marcellus";
     font-size: 1.0rem;
-    white-space: nowrap;    /* No word wrap */
 }
 
 /* Navigation Search bar Icon*/
 #nav-search-icon {
-    display: inline-block;
+    display: block;
     position: absolute;
-    top: 50%;
+    top: 50%;               /* Center vertically */
+    margin-top: -0.8rem;    /* Center vertically */
     right: 0.9rem;
     height: 1.6rem;
-    margin-top: -0.8rem;
+    pointer-events: none; /* Let clicks through to the search bar input element */
 }
 
 /* Navigation Quick-access menu container (widescreen only) */
@@ -146,8 +153,8 @@ body {
 #basket-icon {
     display: inline-block;
     position: static;
-    width: 2rem;
-    height: 2rem;
+    width: 2rem !important; /* Override HTML attributes */
+    height: 2rem !important;
 }
 
 /* Shopping basket number of items indicator */
@@ -162,97 +169,14 @@ body {
     background: #FFAC31;
 }
 
-/* Viewport that is less than 1070px wide */
-@media (width < 1070px) {
+/* Media query breakpoint when the viewport is too narrow to display all the essential elements */
+@media (width < 66.875rem) { /* or 1070px */
 
-    /* Quick-access menu width management in narrow viewports */
-    #header-inner-main-container {
-        grid-template-columns: 319px 2fr 4rem;    /* Maintain horizontal position of all elements, and leave a gap for the Shopping basket */
-    }
-
-    /* #header-logo-container {
-        max-width: min-content; Prevent jump in size at breakpoint
-    } */
-    
-    #nav-search-bar {
-        margin-bottom: 2.8rem;  /* Put a margin as a placeholder to maintain the Search bar vertical position */
+    #header-outer {
+        grid-template-columns: 0fr 2fr 6rem; /* Left column is controlled by Logo min-width, middle column gets available space, right column has a gap for the Shopping basket (absolute positioning) */
     }
 
     #nav-quick-menu {
-        position: absolute; /* Take the Quick-access menu out of context, but still maintain the position in Grid Track */
-    }
-    /********************************************************/
-}
-
-/* Media query for a narrow screen in a desktop-first design */
-/* @media screen and (width < 1060px) */ #disabled {
-    /* Header inner main container */
-    #header-inner-main-container {
-        grid-template-columns: 1fr;
-        height: auto;   /* Height can expand by pressing the Search icon, which displays a Search bar */
-        align-items: start;
-        justify-content: center;
-    }
-
-    #header-logo-container {
-        position: static;
-        justify-self: center;
-        object-fit: none;
-        max-width: none;
-        max-height: none;
-        padding: 0 0 0 0;
-        margin: 0.5rem 0 0;
-    }
-    
-    #logo-title {
-        max-height: none;
-        height: 6rem;
-        margin-left: 0;
-    }
-
-    #logo-icon {
-        min-width: auto;
-        max-width: none;
-        max-height: none;
-        height: 7rem;
-        margin-right: 0;
-    }
-
-    #nav-middle-bar-container {
-        visibility: collapse;
-        position: absolute;
-        height: 0;
-    }
-
-    #nav-full-menu-button {
-        visibility: visible;
-        top: 0.5rem;
-        left: 0.7rem;
-    }
-
-    #nav-search-bar {
-        visibility: collapse;
-        position: static;
-        margin: 5rem 1rem 0.5rem
-    }
-
-    /* Navigation Narrowscreen Search button (narrowscreen only) */
-    #nav-narrowscreen-search-button {
-        display: block;
-        position: absolute;
-        height: 1.8rem;
-        top: 0.5rem;
-        right: 4.5rem;
-    }
-   
-    #nav-quick-menu {
-        display: none;
-    }
-
-    #basket-container {
-        visibility: visible;
-        position: absolute;
-        top: 0.5rem;
-        right: 2rem;
+        margin-right: -500px; /* Collapse the margin on the right so that the #nav-search-bar controls the width of the middle column in #header-outer grid */
     }
 }

@@ -28,7 +28,7 @@ body {
 #logo-title {
     display: inline-block;
     position: static;
-    height: 3.7rem;
+    height: 3.7rem !important; /* Override HTML attributes */
     margin-right: -12px;
     margin-bottom: 0.3rem;
 }
@@ -37,7 +37,7 @@ body {
 #logo-icon {
     display: inline-block;
     position: static;
-    height: 4rem;
+    height: 4rem !important; /* Override HTML attributes */
 }
 
 /* Full menu button icon */
@@ -71,8 +71,8 @@ body {
 #basket-icon {
     display: inline-block;
     position: static;
-    width: 2rem;
-    height: 2rem;
+    width: 2rem !important; /* Override HTML attributes */
+    height: 2rem !important;
 }
 
 /* Shopping basket number of items indicator */
@@ -88,41 +88,33 @@ body {
 
 /* Navigation Search bar container for bottom padding (narrow screen only) */
 #nav-search-bar-container {
-    display: block;
-    display: none;
+    display: none; /* TODO: Try visibility: collapsed */
     position: static;
     padding-bottom: 0.5rem;
     margin: 0 1rem 0;
 }
 
-/* Navigation Search bar */
-#nav-search-bar {
-    display: block;
-    position: relative;
-    padding: 0.3rem 0.6rem;
-    /* margin: 0 1rem 0.5rem; */
-    background: #FFFFFF;
+/* Navigation search bar input container for easier positioning of icon*/
+#nav-search-bar-input-container {
+    position: relative; /* For centering search icon by using relative offset */
 }
 
 /* Navigation Search bar Input */
 #nav-search-bar-input {
+    position: static;
+    width: 100%;
+    padding: 0.3rem 2.4rem 0.3rem 0.6rem;   /* Leave space for the icon on the right*/
     font-family: "Marcellus";
     font-size: 1.0rem;
-    white-space: nowrap;    /* No word wrap */
 }
 
 /* Navigation Search bar Icon*/
 #nav-search-icon {
-    display: inline-block;
+    display: block;
     position: absolute;
-    top: 50%;
+    top: 50%;               /* Center vertically */
+    margin-top: -0.8rem;    /* Center vertically */
     right: 0.9rem;
     height: 1.6rem;
-    margin-top: -0.8rem;
-}
-
-@media screen and (width < 45rem) {
-    
-    @media (width < 30rem ) {
-    }
+    pointer-events: none; /* Let clicks through to the search bar input element */
 }
