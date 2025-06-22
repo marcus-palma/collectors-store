@@ -249,6 +249,9 @@ function headerOnDOMInsert(insertedURL) {
     // Finally, after using the set of inserted data, add the currently inserted URL into the set
     insertedDataSet.add(insertedURL);
 
+    // Remove in-line size attributes on img elements
+    removeImgSizeAttributes();
+
     // Return true for success
     return true;
 }
@@ -301,4 +304,25 @@ function handleMobileSearchClick(event) {
         mobileSearchButtonContainer.style.display = newDisplay;
     }
     else console.error("searchButtonMobile reference variable has a falsy value");
+}
+
+// Remove HTML in-line size attributes on <img> elements, that were added to prevent the images from flashing in large size when inserting HTML into the DOM. This may enable responsive size and stylesheets to override rules
+function removeImgSizeAttributes () {
+    try {
+        // Get all <img> elements with width attribute, assuming that height attribute also is specified for those
+        const imgs = document.body.querySelectorAll("img[width]");
+        
+        // Validate the returned collection
+        if (typeof imgs === "undefined") return;
+
+        for (const img of imgs) {
+            // Validate the entry
+            if (typeof img === "undefined" && img === null) continue;
+
+            // Remove both width and heigth attributes from element
+            img.removeAttribute("width");
+            img.removeAttribute("height");
+        }
+    }
+    catch (e) { console.error(`removeImgSizeAttributes - Caught error: ${e}`) }
 }

@@ -28,7 +28,7 @@ body {
 #logo-title {
     display: inline-block;
     position: static;
-    height: 3.7rem !important; /* Override HTML attributes */
+    height: 3.7rem;
     margin-right: -12px;
     margin-bottom: 0.3rem;
 }
@@ -37,7 +37,7 @@ body {
 #logo-icon {
     display: inline-block;
     position: static;
-    height: 4rem !important; /* Override HTML attributes */
+    height: 4rem;
 }
 
 /* Full menu button icon */
@@ -71,8 +71,8 @@ body {
 #basket-icon {
     display: inline-block;
     position: static;
-    width: 2rem !important; /* Override HTML attributes */
-    height: 2rem !important;
+    width: 2rem;
+    height: 2rem;
 }
 
 /* Shopping basket number of items indicator */
