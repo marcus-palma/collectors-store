@@ -26,6 +26,8 @@ let mobileSearchButtonContainer;
 // Media Query List for narrow screens
 let mediaQueryListNarrow;
 
+// A boolean for marking when the header waiting for a switch. To be used as a gate-keeper, because the routines involve asynchronous microtasks and animation frame requests
+let isWaitingForHeaderSwitch = false;
 
 ///////////////////////////////////////////
 // Document load events
@@ -48,7 +50,7 @@ function handleDOMContentLoaded() {
 function initializePlatformSwitch() {
     // Create MediaQueryList object for narrow screen
     mediaQueryListNarrow = matchMedia(
-        "(width < 900px) or (orientation: portrait)"
+        "(width <= 1080px) and (max-aspect-ratio: 6/7)"
     );
 
     // Attach event listener to the MediaQueryList object for resize event
@@ -71,9 +73,14 @@ function switchHeaderHTML() {
     if (mediaQueryListNarrow.matches)   url = headerNarrowHTMLURL;
     else                                url = headerWideHTMLURL;
 
+    // Check if there currently is a call of this function, already waiting to finish
     // Check if the required data is already inserted into the DOM
     // Then do no changes in header and return
-    if (insertedDataSet.has(url)) return;
+    if (isWaitingForHeaderSwitch || insertedDataSet.has(url)) return;
+
+    // Proceed attempt to change the header
+    // Activate gate keeper
+    isWaitingForHeaderSwitch = true;
 
     // Check if required data is already cached in this script scope    
     const insertPromise = new Promise((resolve, reject) => {
@@ -105,7 +112,9 @@ function switchHeaderHTML() {
         try { headerOnDOMInsert(url) }
         catch (e) { return Promise.reject(`switchHeaderHTML - Caught error when calling HeaderOnDOMInsert function: ${error}`) }
     })
-    .catch((error) => console.error(`switchHeaderHTML - Caught error at the end of promise chain: ${error}`));
+    .catch((error) => console.error(`switchHeaderHTML - Caught error at the end of promise chain: ${error}`))
+    // And finally, reset the gate-keeping boolean to allow new attempts
+    .finally(() => isWaitingForHeaderSwitch = false);
 }
 
 // Generalized utility function for fetching HTML data
@@ -115,7 +124,7 @@ function fetchHTML (url) {
             if (response.ok) return response.text();
             else return Promise.reject(`fetchHTML - HTTP error with status code: ${response.status}`);
         })
-        .catch((error) => console.error(`fetchHTML - Caught error while fetching HTML data: ${error}`));
+        .catch((error) => Promise.reject(`fetchHTML - Caught error while fetching HTML data: ${error}`));
 }
 
 /** Generalized utility function for inserting HTML data directly into the DOM. Returns true on success, throws error on failure
