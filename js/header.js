@@ -308,21 +308,25 @@ function handleMobileSearchClick(event) {
 
 // Remove HTML in-line size attributes on <img> elements, that were added to prevent the images from flashing in large size when inserting HTML into the DOM. This may enable responsive size and stylesheets to override rules
 function removeImgSizeAttributes () {
-    try {
-        // Get all <img> elements with width attribute, assuming that height attribute also is specified for those
-        const imgs = document.body.querySelectorAll("img[width]");
-        
-        // Validate the returned collection
-        if (typeof imgs === "undefined") return;
+    // Before removing, wait two animation frames to give time for CSS stylesheet to load properly
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+        try {
+            // Get all <img> elements with width attribute, assuming that height attribute also is specified for those
+            const imgs = document.body.querySelectorAll("img[width]");
+            
+            // Validate the returned collection
+            if (typeof imgs === "undefined") return;
 
-        for (const img of imgs) {
-            // Validate the entry
-            if (typeof img === "undefined" && img === null) continue;
+            for (const img of imgs) {
+                // Validate the entry
+                if (typeof img === "undefined" && img === null) continue;
 
-            // Remove both width and heigth attributes from element
-            img.removeAttribute("width");
-            img.removeAttribute("height");
-        }
-    }
-    catch (e) { console.error(`removeImgSizeAttributes - Caught error: ${e}`) }
+                // Remove both width and heigth attributes from element
+                img.removeAttribute("width");
+                img.removeAttribute("height");
+            }
+        } catch (e) { console.error(`removeImgSizeAttributes - Caught error: ${e}`) }
+        })
+    })
 }
