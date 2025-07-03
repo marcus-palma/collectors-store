@@ -4,12 +4,9 @@
 //  Script scoped variables
 ///////////////////////////////////////////
 
-// Server prefix URL kept in one place for appending filepaths easily 
-const serverBaseURL = "http://localhost:8000"
-
 // Resource URLs
-const headerNarrowHTMLURL = serverBaseURL + "/source/collectors-store/html/header_narrow.html";
-const headerWideHTMLURL = serverBaseURL + "/source/collectors-store/html/header_wide.html";
+const headerNarrowHTMLURL = "/source/collectors-store/html/header_narrow.html";
+const headerWideHTMLURL = "/source/collectors-store/html/header_wide.html";
 
 // Map for keeping track of fetched data used for dynamic DOM manipulation
 // Structure: URL<string>, { data:value<string>, inserted:value<boolean> }
@@ -29,17 +26,13 @@ let mediaQueryListNarrow;
 // A boolean for marking when the header waiting for a switch. To be used as a gate-keeper, because the routines involve asynchronous microtasks and animation frame requests
 let isWaitingForHeaderSwitch = false;
 
+
 ///////////////////////////////////////////
-// Document load events
+// Initialize functionality
 ///////////////////////////////////////////
 
-// Listen for DOMContentLoaded event
-document.addEventListener("DOMContentLoaded", handleDOMContentLoaded);
-
-// Define event handler for DOMContentLoaded event
-function handleDOMContentLoaded() {
-    initializePlatformSwitch();
-}
+// When this script file is run, do setup work
+initializePlatformSwitch();
 
 
 /////////////////////////////////////////////////////////////
