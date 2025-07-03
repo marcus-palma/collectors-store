@@ -1,0 +1,34 @@
+.container {
+    display: block;
+    position: static;
+}
+
+span {
+    display: block;
+    position: static;
+    font-family: "Marcellus";
+}
+
+.image {
+    display: block;
+    position: static;
+    max-width: 100%;        /* Fit into grid */
+    object-fit: contain;    /* Fit into grid */
+    background-color: #F7F7F7;
+}
+
+.name {
+    font-size: 1.125rem;
+    padding-top: 0.46875rem;
+}
+
+.mythology {
+    font-size: 1rem;
+    color: var(--clay-gray);    /* Custom property from an external file */
+}
+
+.price {
+    font-size: 1.125rem;
+    padding-top: 0.625rem;
+    color: var(--clay-shadow);  /* Custom property from an external file */
+}

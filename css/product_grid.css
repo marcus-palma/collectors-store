@@ -1,0 +1,5 @@
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(calc(12.5rem + 7%), 1fr)); /* An Implicit Grid. Flow-direction is row. Automatically fits items+gaps by wrapping into more lines, and then resizing according to left-over space. The minimum size is increasing with the total width of the grid */
+    gap: calc(0.5rem + 1%); /* Gap with minimum value and increasing with the size of the grid */
+}
