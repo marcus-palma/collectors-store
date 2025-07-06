@@ -1,86 +1,89 @@
-[
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },    
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
+{
+    "isLastChunk": false,
+    "productEntryArray": [
         {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    },    
-    {
-        "imgSrc": "/icons/centaur_placeholder_512x.png",
-        "name": "Centaur",
-        "mythology": "Greek Mythology",
-        "price": 12000,
-        "productURL": "to be filled"
-    }
-]
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },    
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+            {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        },    
+        {
+            "imgSrc": "/icons/centaur_placeholder_512x.png",
+            "name": "Centaur",
+            "mythology": "Greek Mythology",
+            "price": 12000,
+            "productURL": "to be filled"
+        }
+    ]
+}
