@@ -5,7 +5,7 @@
 ////////////////////////////////////////
 
 // Wait for Product Entry script to evaluate before proceeding. It will define a Custom Element in the registry, register Event Listeners and load its dependencies
-import "/source/collectors-store/js/product_entry.js";
+import "/source/collectors-store/client/js/product_entry.js";
 
 
 ////////////////////////////////////////
@@ -30,7 +30,7 @@ propagateGrid();
 
 // Propagate the grid container with one or more instances of "Product Entry" feature. Can be called multiple times for increasing the number of entries
 function propagateGrid() {
-    return fetch("/source/collectors-store/json/product_grid_response_sample.json")
+    return fetch("/source/collectors-store/client/json/product_grid_response_sample.json")
     .then((response) => {
         if (!response.ok) console.error("Product Grid - function propagateGrid: Response HTTP status code is not OK");
         return response.text();

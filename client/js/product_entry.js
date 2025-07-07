@@ -71,7 +71,7 @@ class productEntry extends HTMLElement {
         }
       
         // Fetch resources for product entry. These resources are expected to be cached at this point with <link rel="preload"> feature
-        return fetch("/source/collectors-store/html/product_entry.html", { cache:"default", mode:"cors" }) // { cache:"default", mode:"same-origin" }
+        return fetch("/source/collectors-store/client/html/product_entry.html", { cache:"default", mode:"cors" }) // { cache:"default", mode:"same-origin" }
         .then((response) => {
             if(!response.ok) Promise.reject("class productEntry - method connectedCallback: fetch response HTTP status is not ok");
             return response.text();

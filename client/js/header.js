@@ -5,8 +5,8 @@
 ///////////////////////////////////////////
 
 // Resource URLs
-const headerNarrowHTMLURL = "/source/collectors-store/html/header_narrow.html";
-const headerWideHTMLURL = "/source/collectors-store/html/header_wide.html";
+const headerNarrowHTMLURL = "/source/collectors-store/client/html/header_narrow.html";
+const headerWideHTMLURL = "/source/collectors-store/client/html/header_wide.html";
 
 // Map for keeping track of fetched data used for dynamic DOM manipulation
 // Structure: URL<string>, { data:value<string>, inserted:value<boolean> }
