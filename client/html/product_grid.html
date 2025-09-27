@@ -2,16 +2,22 @@
 <html lang="en">
     <head>
         <!-- Product Grid resources -->
+        <script type="module" src="/source/collectors-store/client/js/product_grid.js"></script>
         <link rel="stylesheet" href="/source/collectors-store/client/css/product_grid.css">
         <!-- Product Entry resources -->
         <link rel="preload" href="/source/collectors-store/client/html/product_entry.html" as="fetch" type="text/html" crossorigin="anonymous">
         <link rel="preload" href="/source/collectors-store/client/css/product_entry.css" as="style">
         <link rel="modulepreload" href="/source/collectors-store/client/js/product_entry.js">
+        <!-- Shared resources -->
+        <link rel="modulepreload" href="/source/collectors-store/client/js/media_query_lists.js">
+        <link rel="stylesheet" href="/source/collectors-store/client/css/fonts.css">
         <!-- RWD: Set viewport attribute width value to device width -->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script type="module" src="/source/collectors-store/client/js/product_grid.js"></script>
     </head>
     <body>
         <div class="product-grid container"></div>
+        <div class="horizontal-bar container"></div>
+        <div class="end-of-results-text container"></div>
+        <div class="page-bar container"></div>
     </body>
 </html>

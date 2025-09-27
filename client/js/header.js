@@ -1,3 +1,11 @@
+// The "Header" feature.
+// Purpose:
+// - Be available on top of each web page related to shopping
+// - Display the logo and title of the e-commerce store
+// - Provide navigation over the website, linking to neccessary web pages
+// - Display the current status of the shopping, such as the number of items added in the "Shopping Cart" feature
+// Dependency: The Header is a module, and is used in all pages related to shopping
+
 "use strict";
 
 ///////////////////////////////////////////

@@ -1,5 +1,34 @@
-.container {
+/* The vertical variant of the actual grid container holding instances of "Product Entry". Activated programmatically by changing the "class" attribute of this element */
+product-grid.container.vertical {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(calc(12.5rem + 7%), 1fr)); /* An Implicit Grid. Flow-direction is row. Automatically fits items+gaps by wrapping into more lines, and then resizing according to left-over space. The minimum size is increasing with the total width of the grid */
-    gap: calc(0.5rem + 1%); /* Gap with minimum value and increasing with the size of the grid */
+    grid-template-columns: repeat(auto-fit, minmax(calc(12.5rem + 7%), 1fr));       /* An "implicit grid". Flow-direction is row. Automatically fits items+gaps by wrapping into more lines, and then resizing according to left-over space. The minimum size is increasing with the total width of the grid */
+    gap: calc(0.5rem + 1%);     /* Gap with minimum value and increasing with the size of the grid */
+}
+
+/* The horizontal variant of the actual grid container holding instances of "Product Entry". Activated programmatically by changing the "class" attribute of this element */
+product-grid.container.horizontal {
+    display: grid;
+    grid-auto-flow: column;     /* Fill columns first, and add new columns if necessary. This means that the grid infinitely increases in internal size in x-direction */
+    grid-auto-columns: minmax(calc(12.5rem + 7%), 1fr);     /* An "implicit grid". The size of the columns is increasing slightly with the total width of the grid */
+    gap: calc(0.5rem + 1%);     /* Gap with minimum value and increasing with the size of the grid */
+}
+
+/* The horizontal bottom bar with "ornament graphics", placed beneath the last row of "product entries" */
+.horizontal-bar.bar {
+    display: block;
+    position: static;
+    background-image: url("/media/ornaments/golden-ornamental-frames_23-2147545654_upscaled_01.png");   /* Ornament pattern */
+    background-size: contain;       /* Scale horizontally to fit the actual height */
+    background-repeat: repeat-x;    /* Horizontal tiling */
+    height: 3.25rem;
+    width: 100%;
+}
+
+/* The "end of results text" that appears when the last "product entries" for the current "product query" are shown */
+end-of-results-text.text {
+    display: inline;        /* Horizontal centering */
+    position: static;
+    text-align: center;     /* Horizontal centering */
+    font-family: "Marcellus SC";
+    font-size: 1.5rem;
 }

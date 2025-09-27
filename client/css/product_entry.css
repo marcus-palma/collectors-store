@@ -1,8 +1,15 @@
+/* Every "product entry" class that is NOT an <a> anchor element. Currently, the container is the only <a> element */
+.product-entry:not(a) {
+    pointer-events: none;   /* Let the pointer events through all the way to the "a.container" element */   
+}
+
+/* Every container element */
 .container {
     display: block;
     position: static;
 }
 
+/* Every text element */
 span {
     display: block;
     position: static;
@@ -22,7 +29,7 @@ span {
     padding-top: 0.46875rem;
 }
 
-.mythology {
+.culture {
     font-size: 1rem;
     color: var(--clay-gray);    /* Custom property from an external file */
 }
@@ -31,4 +38,9 @@ span {
     font-size: 1.125rem;
     padding-top: 0.625rem;
     color: var(--clay-shadow);  /* Custom property from an external file */
+}
+
+/* The horizontal bar below the last row of results of "product entries". Does only appear when "are pages enabled" is true */
+img.horizontal-bar.bar {
+    background-repeat: repeat-x;
 }

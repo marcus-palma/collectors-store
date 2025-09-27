@@ -1,0 +1,107 @@
+{
+    "categoryTypes": [
+        {
+            "displayName": "Form",
+            "categoryType": "form",
+            "categoryIDs": [
+                {
+                    "displayName": "Figurines",
+                    "categoryID": "figurines",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Jewelry",
+                    "categoryID": "jewelry",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Posters",
+                    "categoryID": "posters",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Mugs",
+                    "categoryID": "mugs",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                }
+            ]
+        },
+        {
+            "displayName": "Culture",
+            "categoryType": "culture",
+            "categoryIDs": [
+                {
+                    "displayName": "Egyptian Mythology",
+                    "categoryID": "egyptian",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Greek Mythology",
+                    "categoryID": "greek",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Chinese Mythology",
+                    "categoryID": "chinese",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Nordic Mythology",
+                    "categoryID": "nordic",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                }
+            ]
+        },
+        {
+            "displayName": "Kind",
+            "categoryType": "kind",
+            "categoryIDs": [
+                {
+                    "displayName": "Humanoid",
+                    "categoryID": "humanoid",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Canine",
+                    "categoryID": "canine",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Feline",
+                    "categoryID": "feline",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Avian",
+                    "categoryID": "avian",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Reptilian",
+                    "categoryID": "reptilian",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Aquatic",
+                    "categoryID": "aquatic",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Equine",
+                    "categoryID": "equine",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Insectoid",
+                    "categoryID": "insectoid",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                },
+                {
+                    "displayName": "Hybrid",
+                    "categoryID": "hybrid",
+                    "imgSrc": "/media/icons/question%20mark%204.jpg"
+                }                        
+            ]
+        }
+    ]
+}

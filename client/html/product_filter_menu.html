@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- "Product filter grid" resources -->
+        <script type="module" src="/source/collectors-store/client/js/product_filter_menu.js"></script>
+        <link rel="stylesheet" href="/source/collectors-store/client/css/product_filter_menu.css">
+        <!-- "Product grid" resources -->
+        <link rel="preload" href="/source/collectors-store/client/html/product_grid.html" as="fetch" type="text/html" crossorigin="anonymous">
+        <!-- Meta settings -->
+        <!-- RWD: Set viewport attribute width value to device width -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <!-- Actually, it's better to parse a JSON structure and automatically build each "product filter grid"-->
+        <product-filter-grid category-type="form"></product-filter-grid>
+        <product-filter-grid category-type="culture"></product-filter-grid>
+        <product-filter-grid category-type="kind"></product-filter-grid>
+    </body>
+</html>
