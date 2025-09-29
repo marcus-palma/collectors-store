@@ -45,12 +45,6 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
  * @property {productQueryOptions} initialQuery - The initial query for requesting products from the server.
  */
 
-/** (DEPRECATED: Combined into productGridRequest) The data structure of a "chunk request" when requesting the client to propagate the "product grid". The intention is to store identifiable data of chunks, to avoid incorrect/duplicate chunks during potential race conditions. 
- * @typedef chunkRequest
- * @property {number} ID - The index of the chunk
- * @property {productQueryOptions} query - The "product query" of the chunk
- */
-
 /** The data structure of a filter for requesting products from the server.
  * @typedef {object} productFilter
  * @property {string} categoryType      - The type of category for organizing the filters
@@ -63,28 +57,6 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
  * @property {Array.<productFilter>} filters    - An array of "Product Filters". See productFilter
  * @property {string} sort                      - The identifier string for the sorting method
  */
-
-/** (DEPRECATED: Combined into productGridRequest) The data structure of a server response used for initializing the "Product Grid" with settings. Refer to "initializeGrid" function
- * @typedef initDataResponse
- * @property {number} chunkSize     - The size of chunks, expressed in number of data entries for the "Product Entry" feature. Assigned once from a server response when calling the initializeGrid function.
- * @property {number} endChunkID    - (number ≤ 0 | number ≥ 1) The ending index of chunks that the server matched with the currentQuery. Assigned once from a server response when loading the "Product Grid" feature. A value equal or less than zero indicates that there are no results for this query 
- */
-
-/** (DEPRECATED: Combined into productGridResponse) The data structure of server response for propagating the "Product Grid" with one or more instances of "Product Entry". Refer to "propagateGrid" function
- * @typedef propagateGridResponse
- * @property {productEntryDataResponses} productEntryDataResponses
- */
-
-// DEPRECATED: Moved to file "product_entry.js"
-//
-// /** The data structure of server response for data of one instance of "Product Entry".
-//  * @typedef productEntryDataResponse
-//  * @property {string} imgSrc        - Product preview image URL
-//  * @property {string} name          - Product display name
-//  * @property {string} culture       - Culture display name
-//  * @property {number} priceCents    - Price in cents (1/100)
-//  * @property {string} productURL    - Product view page URL
-//  */
 
 /** PLACEHOLDER
  * @typedef validProductFilterStringsStruct
@@ -99,25 +71,6 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
  * @typedef historyState
  * @property {productQueryOptions} query
  * @property {number} page          - Page number, 1-based
- */
-
-/** (DEPRECATED: Combined into productGridRequest) The data structure of an "index interval"
- * @typedef indexInterval
- * @property {number} startID - The start index
- * @property {number} endID - The end index
- */
-
-/** (DEPRECATED: Combined into productGridRequest) The data structure of an "index interval request"
- * @typedef indexIntervalRequest
- * @property {indexInterval} interval
- * @property {productQueryOptions} query
- */
-
-/** (DEPRECATED: Combined into productGridRequest) The data structure for the most recent request for propagating the "product grid"
- * @typedef propagationRequest
- * @property {number} chunkID
- * @property {indexInterval} interval
- * @property {productQueryOptions} query
  */
 
 /** The data structure for making requests to the server for any relevant data for the "Product Grid" and "Product Filter Menu". It should be used for propagating the grid, getting hints about the available product query results, and getting the available "product filter menu" settings 
@@ -155,20 +108,6 @@ let isProductFilterMenuEnabled;
 /** The size of a block, expressed in number of data entries for the "Product Entry" feature. Assigned once with the value from the first response from the server.
  * @type {number} */
 let blockSize;
-
-/** (DEPRECATED: Replaced by fulfilledProductGridRequest) The data of the most recently requested chunk that was received in a server response of a fetch. 
- * @type {chunkRequest} */
-let currentRequestedChunk = {
-    ID: null,
-    query: null
-};
-
-/** (DEPRECATED: Replaced by fulfilledProductGridRequest) The data of the most recently received chunk that was requested in a fetch to the server.
- * @type {chunkRequest} */
-let currentReceivedChunk = {
-    ID: null,
-    query: null
-};
 
 /** The current "Product Entry Pointer". It points to a "Product Entry index" in the context of the "Product Grid container", used for pointing where to propagate new entries. 
  * @type {number} */
@@ -210,16 +149,6 @@ let numProducts = 0;
  * @type {number} */
 let lastAvailableProductID = null;
 
-/** (DEPRECATED: Replaced by fulfilledProductGridRequest) The most recently requested interval of "product entry" indices
- * @type {indexIntervalRequest} */
-let currentRequestedInterval = {
-    interval: {
-        startID: null,
-        endID: null 
-    },
-    query: null
-}
-
 /** (number ≤ 0 | number ≥ 1) The limit of number of products that can be propragated into the grid. May be used in places where page-by-page mode is inappropriate. A value less than or equal to zero indicates that there is no limit.
  * @type {number}
  * @memberof {gridOptions} */
@@ -228,17 +157,6 @@ let maxProducts;
 /** (DEPRECATED: Replaced by fulfilledProductGridRequest) The most recently fulfilled "product grid propagation request". The intention is to avoid redundant new requests
  * @type {propagationRequest} */
 let fulfilledPropagationRequest = {
-    chunkID: null,
-    interval: {
-        startID: null,
-        endID: null
-    },
-    query: null
-}
-
-/** (DEPRECATED: Replaced by pendingProductGridRequest)
- * @type {propagationRequest} */
-let pendingPropagationRequest = {
     chunkID: null,
     interval: {
         startID: null,
@@ -340,10 +258,6 @@ let productFilterMenuTemplate = null;
 /** @type validProductFilterStringsStruct */
 let validProductFilterStrings;
 
-/** (DEPRECATED: Moved to the productEntry class as a static variable) A pool of free, deactivated "product entries". Allows re-using old instances
- * @type {Array.<productEntry>} */
-const productEntryPool = new Array();
-
 /** (DEPRECATED: Replaced by checking date difference on demand) Timeout-gates for "requests to propagate the product grid" that are equal to their previous ones, and requests that are inequal to their previous ones. The intention is to use different duration for the timeout depending on whether the request is same or different.
  * @type {requestTimeoutGates}
  * @typedef requestTimeoutGates
@@ -364,11 +278,11 @@ let lastProductGridRequestDate = null;
 // Main functionality
 ////////////////////////////////////////
 
-// DEPRECATED
-// initValidProductFilterStrings();
-//
+// TODO: Replace this client-side routine with a server request. A placeholder function for keeping track of valid "Product Filter" strings
+initValidProductFilterStrings();
+
 // DEPRECATED: Remove this function call after adding it in the promise chain in initializeGrid.
-// Ready to run one iteration of propagating the grid
+// // Ready to run one iteration of propagating the grid
 // fetchAndPropagate(0);
 
 /** Initialize the "Product Grid". This function should be called once after importing its module
@@ -465,233 +379,6 @@ function initializeGrid (
         })
         .catch((error) => console.error(`Product Grid - initializeGrid: Caught an error in the promise chain of 'horizontalBarPromise': ${error}`));
     }
-
-    // DEPRECATED: all of the fetch and it's promise chain below will be replaced by a combined fetch function
-    //
-    // // Fetch blockSize and endBlockID values from the server
-    // // TODO: add a query string to the URL, so the server can check the total number of chunks for the given query 
-    // fetch("source/collectors-store/client/json/product_grid_initialize_response_sample.json")
-    // 
-    // // Process server HTTP response
-    // .then((response) => {
-    //     // Check if the "HTTP status code" is OK
-    //     if (!response.ok) Promise.reject("Product Grid - initializeGrid: Response HTTP status code was not OK when fetching for initalization data");
-    //     
-    //     // Convert the "HTTP response body" to text
-    //     return response.text();
-    // })
-    // 
-    // // Process the stringified text from the server response
-    // .then((JSONText) => {
-    //     /** @type {initDataResponse} */
-    //     const init = JSON.parse(JSONText);
-    // 
-    //     // Process chunkSize response
-    //     // Check for invalid property or value. Only number type is allowed
-    //     if (typeof init.chunkSize !== "number" || !init.chunkSize) {
-    //         // If invalid, use default value
-    //         blockSize = 12;
-    //         console.warn("Product Grid - initializeGrid: Server response property 'chunkSize' is either undefined or has a falsy value. Defaulting to 12");
-    //     }
-    //     // Otherwise, it's considered valid and will be applied as a setting of "Product Grid"
-    //     else blockSize = init.chunkSize;
-    //    
-    //     // Process endChunkID response
-    //     // Check if the value is undefined or invalid
-    //     if (typeof init.endChunkID === "undefined" || !Number.isInteger(init.endChunkID)) {
-    //         // Then, apply with default value
-    //         endBlockID = null;
-    //         console.error("Product Grid - initializeGrid: Server response property 'chunkSize' is either undefined or has an invalid value. This can lead to problems with page-by-page mode and redundant requests to server");
-    //     }
-    //     // Otherwise, it's considered valid and will be applied as a setting of "Product Grid"
-    //     else endBlockID = init.endChunkID;
-    // 
-    //     // Now, the fetch is finished
-    //     // Return to outer promise chain
-    //     return Promise.resolve();
-    // })
-    // 
-    // // Do various synchronous work after finishing the fetch
-    // .then(() => {
-    //     // Catch errors to avoid letting them flow into the outer promise chain
-    //     try {
-    //         updatePageState();
-    //         setHorizontalBarVisibility(arePagesEnabled);
-    //         requestToFetchAndPropagateGrid();            
-    //     }
-    // 
-    //     // If an error is caught, reject this promise
-    //     catch (e) { return Promise.reject(`Product Grid - initializeGrid: Caught an error when doing work after the fetch is finished: ${e}`); }
-    //     
-    //     // When reaching this line, this promise is considered successful
-    //     return Promise.resolve();
-    // })
-    // 
-    // // All uncaught errors in this promise chain end up in this catch-promise
-    // .catch((error) => console.error(`Product Grid - initializeGrid: Caught an error from promise chain: ${error}`));
-}
-
-/** (DEPRECATED: Replaced by fetchAndProcessProductGridRequest) Propagate the grid container with one or more instances of "Product Entry" feature. Should only be called once per requestToPropagateGrid function call.
- * @param {number} numToPropagate - (number ≤ 0 | number ≥ 1) Fetch a specified number of entries from the server. If zero or less, fetch a chunk of entries from the server.
- * @param {indexInterval} intervalToFetch - The interval of "product entry indices" to fetch
- * @param {number} chunkIDToFetch - The "chunk index" to fetch
- */
-function fetchAndPropagate(isChunkFetch) {
-    // Check if the argument "is chunk" is undefined
-    if (typeof isChunkFetch === "undefined") return Promise.reject("Product Grid - fetchAndPropagateGrid: argument 'isChunk' is undefined");
-    
-    // Since there may be concurrent fetch requests, each with unpredictable timings, it's a good practice to allow checking if this fetch still is current, or replaced by another fetch. The approach is to save the current state of the "current requested chunk" object.
-    // Make a "deep copy" of the "current requested chunk" variable and store it in this function-scope. It will be accessible within this closure. They will associate the server response with the original request, so that the server won't have to re-send redundant data back to the client.
-    /** A "deep copy" of the "current requested chunk" at the time of calling the "fetch and propagate product grid" function. To achieve this easily, use the "structured clone algorithm" that works for simple nested objects and arrays.
-     * @type {propagationRequest} */
-    let thisFetchPropagationRequest = {
-        chunkID: null,
-        interval: {
-            startID: null,
-            endID: null
-        },
-        query: null
-    }
-    
-    // Store a "deep copy" of the "pending product grid propagation request" inside this function-scope
-    thisFetchPropagationRequest = structuredClone(pendingPropagationRequest);
-
-    /** The URL string, selected by whether the argument is asking for a chunk or for a specific number of entries
-     * @type {string} */
-    let url;
-
-    // Check the argument "is chunk" if this fetch is for a chunk
-    if (isChunkFetch) {
-        // Then, set URL to fetch a chunk
-        url = "/source/collectors-store/client/json/product_grid_response_sample.json";
-        // TODO: Develop a server in order to respond to dynamic requests
-    }
-    // Otherwise, this fetch is for an "interval of product entries"
-    else {
-        // Fetch an "interval of product entries"
-        // TODO: Develop a server in order to respond to dynamic requests
-        return Promise.reject("Product Grid - fetchAndPropagateGrid: TODO: Develop a server in order to respond to dynamic requests");
-    }
-
-    // Now, when the URL has been selected, return a Promise-chain starting with fetch
-    return fetch(url)
-    .then((response) => {
-        // Since there may be are concurrent fetch requests, each with unpredictable timings, it's a good practice to see if this fetch still is based on a currently pending "propagation request". The "pending propagation request" may have been replaced by a more recent one after this fetch started.
-        // Check for NON-equality between the function-scoped "this fetch propagation request" and the script-scoped "pending propagation request"
-        if (!comparePropagationRequestsForEquality(thisFetchPropagationRequest, pendingPropagationRequest)) return Promise.reject("Product Grid - fetchAndPropagateGrid: This fetch has been replaced by a more recent one. Reason: The locally stored 'propagation request' of this fetch is no longer the same as the script-level 'propagation request'.");
-
-        // Check the HTTP status code 
-        if (!response.ok) Promise.reject("Product Grid - fetchAndPropagateGrid: Response HTTP status code is not OK");
-        
-        // Convert response body into text
-        return response.text();
-    })
-
-
-    // Process the stringified text from the server response body
-    .then((JSONText) => {
-        // Parse the JSON text into JavaScript objects
-        /** @type {propagateGridResponse} */
-        const propagateGridResponse = JSON.parse(JSONText);
-
-        // Check if the new "propagate grid response" object, created from parsing, is invalid
-        if (
-            typeof propagateGridResponse.productEntryDataResponses === "undefined"
-            || !Array.isArray(propagateGridResponse.productEntryDataResponses)
-            || propagateGridResponse.productEntryDataResponses.length === 0
-        ) return Promise.reject("Product Grid - fetchAndPropagateGrid: The parsed 'propagateGridResponse' object is invalid");
-
-        /** The number of received "product entries" from the server response
-         * @type {number} */
-        let numSuccessfulProductEntries;
-
-        // Loop through the Product Entry Array (size is determined by server)
-        for (const productEntryData of propagateGridResponse.productEntryDataResponses) {
-            // Check if the "product entry data response object" is valid, by usinga specialized function
-            if (!isProductEntryDataResponseValid) {
-                // Then skip this entry, don't count this iteration as a "successful product entry", and continue this for-loop
-                continue;
-            }
-
-            // Since the validation was successful, count this as a "successful product entry"
-            numSuccessfulProductEntries++;
-
-            /** The selected "product entry" element reference to use
-             * @type {productEntry} */
-            let selectedProductEntry = null;            
-
-            // To get an instance of "product entry" check the "product entry pool" first before creating a new instance
-
-            // Does the "product entry pool" have any instances?
-            if (productEntry.productEntryPool.length > 0) {
-                // Then re-use one instance. It doesn't matter which instance is picked, as they are all reset since earlier
-                selectedProductEntry = productEntry.productEntryPool.pop();
-            }
-
-            // Otherwise, the "product entry pool" is empty
-            else {
-                // Create new "product entry" custom element
-                selectedProductEntry = document.createElement("product-entry");
-
-                // Create and add an attribute node for passing one "Product Entry Data Structure" as string type to the "Product Entry".
-                const attr = document.createAttribute("product-entry-data");
-                selectedProductEntry.setAttributeNode(attr);
-            }
-
-            // The "product entry" implements the "attributeChangedCallback" of "custom elements API", as the constructor for applying data. The "product entry data object" is stringified/serialized so that it can be contained within an attribute
-            selectedProductEntry.setAttribute(JSON.stringify(productEntryData));
-
-            // Add the "product entry" to the DOM
-            grid.appendChild(selectedProductEntry);
-
-            /* DEPRECATED: Replaced by the usage of pool system
-            // Create and add a Custom Element to the grid container
-            const productEntry = document.createElement("product-entry");
-            grid.appendChild(productEntry);
-
-            // Create and add an attribute node for passing one "Product Entry Data Structure" as string type to the "Product Entry". This is expected to fire the "attributeChangedCallback" function on the Custom Element
-            const attr = document.createAttribute("product-entry-data");
-            attr.value = JSON.stringify(entry);
-            productEntry.setAttributeNode(attr);
-            */
-        }
-
-        // Reaching to this line is considered a successful "fetch and propagation of the product grid"
-
-        // Transfer the contents of "pending propagation request" to "fulfilled propagation request". This effectively marks the "pending propagation request" as fulfilled.
-        // Update the script-level variable "fulfilled propagation request" with its counterpart "pending propagation request".
-        fulfilledPropagationRequest = pendingPropagationRequest;
-
-        // Assign a new, nullified object to the "pending propagation request" variable
-        pendingPropagationRequest = {
-            chunkID: null,
-            interval: {
-                startID: null,
-                endID: null
-            },
-            query: null
-        };
-
-        // Update the script-level "number of products" variable with the "number of received product entries from the server response".
-        numProducts += numSuccessfulProductEntries;
-
-        // When reaching this line, this promise is considered successful
-        // Return to outer promise chain
-        return Promise.resolve(true);
-    })
-
-    // After fetching and propagating the grid, show or hide "end of results text"
-    .then(() => {
-        // Check if pages are NOT enabled. Then, return to outer promise chain
-        if (!arePagesEnabled) return Promise.resolve(false);
-        
-        // Use error handling when calling the non-thenable function "update end of results text" 
-        try { updateEndOfResultsText(); }
-        catch (e) { Promise.reject(`Product Grid - fetchAndPropagateGrid: Caught error while calling function 'updateEndOfResultsText': ${e}`) }
-    })
-
-    // All uncaught errors of this promise chain end up in this catch-promise
-    .catch((error) => console.log(`Product Grid - fetchAndPropagateGrid: Caught error in promise chain: ${error}`));
 }
 
 /** Checks if the current state of the "Product Grid" fulfills the general pre-requisites in the client to propagate the "Product Grid" container with "Product Entry" entries.
@@ -703,6 +390,7 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
     // Ensure that approved requests are not occuring too rapidly, putting redundant load on the server. Therefore, check if the corresponding "timeout gate" is open for this type of request.
     // There are two different timer durations for the "timeout gates". Use an algorithm to determining request equality, that depends the type of request.
 
+    // TODO: Replace the variable requestTimeoutGates with the function checkRequestTimeoutThresholdForApproval()
     // Firstly, check if both of the timeout-gates are NOT open
     if (!requestTimeoutGates.isOpenForRetry && !requestTimeoutGates.isOpenForNew) {
         // Then, do nothing and return false for rejection
@@ -812,216 +500,6 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
     return true;
 }
 
-/** (DEPRECATED: Replaced by checkPreRequisitesToFetchAndPropagateGrid) Checks pre-requisites in the client to propagate the grid container of "Product Grid" with "Product Entry" entries. If it passes, this function will call the fetch function. This function can be called multiple times for requesting an increased number of entries in the grid, or to retry due to a network error.
- * @param {number | null} chunkIDToRequest - The "chunk index" to request for. Defaults to the next index after the current index
- * @returns {boolean} - If the circumstances meets the pre-requisites, returns true. If not, returns false.
- */
-function requestToFetchAndPropagateGrid() {
-    /* DEPRECATED: Replaced by assuming that the requested chunk is the next index from the current index
-    // Check the argument "chunk index to request" is null
-    if (chunkIDToRequest === null) {
-        // Then default to one "current received chunk index"
-        chunkIDToRequest = currentReceivedChunk.ID + 1;
-    }
-    */
-    
-    // Firstly, check if both of the timeout-gates are NOT open
-    if (!requestTimeoutGates.isOpenForRetry && !requestTimeoutGates.isOpenForNew) {
-        // Then, do nothing and return false for rejection
-        return false;
-    }
-
-    // Check the current state of the "product grid" to determine if it is appropriate to propagate or not. Meanwhile, determine what type of request is appropriate, and the number of "product entries" that is appropriate to propagate with.
-    
-    /** If zero, then it's appropriate to use a chunk to propagate. If greater than zero, then the value represents the number of products to that is appropriate to propagate the grid with. If null, then it is NOT appropriate to propagate the grid.
-     * @type {number | null} */
-    let appropriateNumToPropagate = null;
-    
-    // Determine the value for the "appropriate number of product entries to propagate the product grid with"
-    appropriateNumToPropagateBlock: {
-        // Check if page-by-page mode is enabled
-        if (arePagesEnabled) {
-            // Check if the current received chunk is the ending chunk
-            if (fulfilledPropagationRequest.chunkID >= endBlockID) {
-                // Then, propagation is considered inappropriate
-                // Don't do any work and break this labeled block
-                break appropriateNumToPropagateBlock;
-            }
-    
-            // Check if the "current page index" has changed since the last chunk was fetched and used. This is a range-check to see if the "current received chunk index" is outside the "current product grid page".
-            if (
-                (fulfilledPropagationRequest.chunkID < currentPageID * pageSize
-                || fulfilledPropagationRequest.chunkID > (currentPageID + 1) * pageSize - 1)
-            ) {
-                // Then, Now, there's an appropriate number of "product entries" to propagate the grid with
-    
-                // Set "number of product entry to propagate" to zero, indicating to fetch a chunk of "product entry data"
-                appropriateNumToPropagate = 0;
-            }
-    
-            // Otherwise, the "current received chunk index" is within the "current product grid page"
-            // Check if there is NO remaining space left for chunks on the current page. The value of "current received chunk index" is converted from zero-based to one-based value. The algorithm is only accurate when the remainder is zero, but not for remainders greater than zero.
-            else if ((fulfilledPropagationRequest.chunkID + 1) % pageSize === 0) { 
-                // Then, propagation is considered inappropriate
-                // Don't do any work and break this labeled block
-                break appropriateNumToPropagateBlock;
-            }
-    
-            // Now, there's an appropriate number of "product entries" to propagate the grid with
-    
-            // Set "number of product entry to propagate" to zero, indicating to fetch a chunk of "product entry data"
-            appropriateNumToPropagate = 0;
-        }
-    
-        // Otherwise, pages are NOT enabled, indicating that variables "number of products" and "max products" are used
-        else {
-            // Before proceeding, check if the current "number of products" has reached the reported "end product index"
-            // OR check if the "max products" setting is activated WHILE the grid has reached the maximum number of products
-            if (
-                (numProducts-1) >= lastAvailableProductID
-                || (
-                    maxProducts > 0
-                    && numProducts >= maxProducts
-                )
-            ) {
-                // Then propagation is considered inappropriate
-                // Don't do any work and break this labeled block
-                break appropriateNumToPropagateBlock;
-            }
-    
-            // Now, there's an appropriate number of "product entries" to propagate the grid with
-            // Calculate the remaining space that can be propagated
-    
-            // The remaining space to "end product index"
-            const remainingSpaceToEnd = lastAvailableProductID - numProducts-1;
-    
-            // The remaining space to "max products"
-            const remainingSpaceToMax = maxProducts - numProducts;
-            
-            // Pick the smallest value
-            const remainingSpace =  min(remainingSpaceToEnd, remainingSpaceToMax);
-    
-            // Check if the remaining space for products can fill an entire chunk
-            if (remainingSpace >= blockSize) {
-                // Set "number of product entry to propagate" to zero, indicating to fetch a chunk of "product entry data"
-                appropriateNumToPropagate = 0;
-            }
-            else {
-                // Otherwise, fetch a smaller number of products that will fill the "Product Grid" to the client-side maximum limit
-                appropriateNumToPropagate = remainingSpace;
-            }
-        }
-    }
-    
-    // Check if the result from running the labeled block "checkIfAppropriateBlock" is indicating that propagation is inappropriate, OR if the value is invalid
-    if (
-        appropriateNumToPropagate === null
-        || typeof appropriateNumToPropagate !== "number"
-        || appropriateNumToPropagate < 0
-    ) {
-        // Then do nothing and return false for rejected request
-        return false;
-    }
-
-    // Now, there is an appropriate number of "product entries" that the grid could be propagated with.
-    // Analyze what type of request this is involving, whether it is a chunk, or an interval of indices of "product entries" to propagate the "product grid" with.
-    // If the request involves a chunk, then the new "chunk index" needs to be defined
-    // If the request involves an interval of indices, then the interval bounds need to be defined
-
-    /** The new "product grid propagation request" object to construct and analyze. This object has the potential to become the new "pending propagation request", if the function approves it.
-     * @type {propagationRequest} */
-    const newPropagationRequest = {
-        chunkID: null,
-        interval: {
-            startID: null,
-            endID: null
-        },
-        query: null
-    };
-
-    // Check if the new request is for a chunk
-    if (appropriateNumToPropagate === 0) {
-        // Set the new "chunk index"
-        newPropagationRequest.chunkID = fulfilledPropagationRequest.chunkID + 1;
-    }
-
-    // Otherwise, the new request is for an interval of indices
-    else {
-        // Set bounds of the interval. Starts from the "current number of product entries", extended by the "appropriate number of product entries to propagate the product grid with"
-        newPropagationRequest.interval.startID = numProducts - 1;
-        newPropagationRequest.interval.endID = numProducts + appropriateNumToPropagate - 1;
-    }
-
-    // Set the "product query" of the new request, using the "current product query settings"
-    newPropagationRequest.query = currentQueryOptions;
-
-    // Ensure that approved requests are not occuring too rapidly, putting redundant load on the server. Therefore, check if the corresponding "timeout gate" is open for this type of request.
-    // There are two different timer durations for the "timeout gates". Use an algorithm to determining request equality, that depends the type of request.
-
-    /** If true, the requested data is the same as the data in the previous request. If false, the requested data is different from the previous request.
-     * @type {boolean} */
-    const isRequestEqual = comparePropagationRequestsForEquality(newPropagationRequest, pendingPropagationRequest);
-
-    // TODO: Move the timer-gate-processing up to the top
-    // Check which gate to use depending on if the new request is equal or inequal to the previous request
-    if (isRequestEqual) {
-        // Check if the gate for equal requests is open
-        if (requestTimeoutGates.isOpenForRetry) {
-            // Close this gate after passing through it
-            requestTimeoutGates.isOpenForRetry = false;
-
-            // Start a timer for opening the gate again. The duration is longer for equal requests
-            setTimeout(() => requestTimeoutGates.isOpenForRetry = true, 4000);
-        }
-
-        // Otherwise, the gate for equal requests is closed
-        else {
-            // Then do nothing and return false for a rejected request
-            return false;
-        }
-    }
-
-    // Else, this is an inequal request
-    else {
-        // Check if the gate for inequal requests is open
-        if (requestTimeoutGates.isOpenForNew) {
-            // Close this gate after passing through it
-            requestTimeoutGates.isOpenForNew = false;
-
-            // Start a timer for opening the gate again. The duration is shorter for inequal requests
-            setTimeout(() => requestTimeoutGates.isOpenForNew = true, 2000);
-        }
-
-        // Otherwise, the gate for inequal requests is closed
-        else {
-            // Then do nothing and return false for a rejected request
-            return false;
-        }
-    }
-
-    // When reaching this line, the new request is considered as accepted
-    
-    // Check if the new request is a chunk type
-    if (appropriateNumToPropagate === 0) {
-        // Update the index of the "current requested chunk" by adding one to the index of the most recently received chunk
-        newPropagationRequest.chunkID = fulfilledPropagationRequest.chunkID + 1;
-    }
-    // Otherwise, check if the new request is an "index interval" type
-    else if (appropriateNumToPropagate > 0) {
-        newPropagationRequest.interval.startID = numProducts - 1;
-        newPropagationRequest.interval.endID = numProducts + appropriateNumToPropagate - 1;
-    }
-
-    // Update the "current requested chunk". Making a shallow copy of a function-scoped variable should not cause any problems once this function call is finished.
-    pendingPropagationRequest = newPropagationRequest;
-
-    // Fetch "product entries" and propagate the grid
-    fetchAndPropagate(appropriateNumToPropagate);
-
-    // Return true for an accepted request
-    return true;
-}
-
 /** Update the value of "pageSize" when the value of "chunkSize" has been changed, which normally only happens during the initialization of the "product grid". */
 function updatePageSize() {
     // Firstly, check if pages are disabled. If true, return.
@@ -1063,56 +541,6 @@ function updatePageBar() {
         // Don't any work and return
         return;
     }
-    
-    /* DEPRECATED: If using one for-loop for creating new elements, then another for-loop will be needed to append/remove elements from the DOM. Now these two tasks are done in only one for-loop.
-    // Calculate to get the gap of how many more "page number" elements are needed
-    const numNewElemNeeded = numPages - pageBar.pages.length;
-    // Check if the calculated difference is on the positive side, which means that there are more available pages than elements
-    if (numNewElemNeeded > 0) {
-        // Iterate for every missing "page number" element that is needed
-        for (let i = 1; i <= numNewElemNeeded; i++) {
-            // Create new page elements
-            const numElem = createElement("span");
-
-            // Set the displayed number as a part of the number sequence
-            numElem.textContent = numPages + i;
-
-            // Set HTML class attribute, allowing the CSS stylesheet to apply
-            numElem.setAttribute("class", "page-bar container");
-
-            // Add the new element to "Page Bar" container
-            // BUG: Do it later, otherwise it can cause a gap
-            //pageBar.container.appendChild(numElem);
-
-            // Store the new "page number" element reference inside the pageBar object
-            pageBar.pages.push(numElem);
-        }
-    }
-    // Othwerwise, no more "page number" elements need to be created
-    */
-
-    /* BUG: Can cause gaps
-    // Otherwise, the difference result could be on the negative side. That would indicate that there are more "page number" elements than available pages 
-    // Check if the value is negative
-    else if (numNewElemNeeded < 0) {
-        // Get the absolute value of the difference result
-        const absNumNewElemsNeeded = Math.abs(numNewElemNeeded);
-
-        // Get last index
-        const last = pageBar.pages.length - 1;
-
-        // Iterate for every displayed element that is excessive
-        for (let i = 0; i < absNumNewElemsNeeded; i++) {
-            // Get last child by iterating the array in reverse order
-            const child = pageBar.pages[last - i];
-            // Remove it from the "page bar" container
-            pageBar.container.removeChild(child);
-        }
-    }
-    // Otherwise, the difference is zero. No more "page number" elements needs to be created
-
-    // Now, there could be more available pages than "page number" elements that are added to the DOM
-    */
 
     // Check for changes in the state of "page-by-page mode" 
     // Get the difference between the server-reported "available pages" and its previous value. Previous value could be 0.
@@ -1176,19 +604,6 @@ function updatePageBar() {
         }
     }
 
-    /*
-    // Shorter version: Reset and add from the start again
-    // Reset by removing all "pagen number" elements from the DOM
-    for (const elem of pageBar.pages) {
-        pageBar.container.removeChild(elem);
-    }
-
-    // Restarting from the beginning, add as many "page number" elements as necessary to the DOM
-    for (let i = 0; i < numPages; i++) {
-        pageBar.container.appendChild(pageBar.pages[i]);
-    }
-    */
-
     // Now, all the appropriate "page number elements" are displayed
 
     
@@ -1218,7 +633,7 @@ function updatePageBar() {
     lastNumPages = numPages;
 }
 
-/** Update the number of available pages that was reported from the server for the current query */
+/** (TODO: Replace deprecated "endBlockID" with "endProductID") Update the number of available pages that was reported from the server for the current query */
 function updateNumPages () {
     // Before proceeding, check if endChunkID is NOT valid
     if (!Number.isInteger(endBlockID)) console.error("Product Grid - updateNumPages: variable 'endChunkID' is invalid");
@@ -1347,31 +762,6 @@ function appendProductGridStateToURL (url, query, pageID) {
         URLResult = url;
     }
 
-    /* DEPRECATED: Un-applicable when pageID is added
-    // Check if the "product query" argument is undefined
-    if (typeof query === "undefined") {
-        console.error("Product Grid - createURLQueryString: The argument 'query' is undefined");
-        // Do no more work and return "null" for failure
-        return null;
-    }
-    // If not undefined, check if the "product query" argument is null has a falsy value
-    else if (query === null || !query) {
-        // Do no more work and return an empty string, that indicates an empty query
-        return "";
-    }
-    */
-
-    //  DEPRECATED: Replaced with "URLSearchParams API"
-    // // Declare variables for storing resulting strings for composition at the end of this function
-    // /** @type {string} */
-    // let searchStrResult = null;
-    // 
-    // /** @type {Array.<string>} */
-    // let filtersResult = null;
-    // 
-    // /** @type {number} */
-    // let pageNumResult = null;
-
     queryBlock: {
         // Check if the "product query object" is invalid
         if (
@@ -1397,12 +787,6 @@ function appendProductGridStateToURL (url, query, pageID) {
             // TODO: Sanitize the string
 
             // Now the "search string" property of the argument is considered valid
-
-            /* DEPRECATED: Replaced with "URLSearchParams API"
-            // Create a string of a key-value pair
-            // key:value = searchStr:[searchStr]
-            searchStrResult = `searchStr=${query.searchStr}`;
-            */
 
             URLResult.searchParams.set("searchStr", query.searchStr);
         }
@@ -1442,17 +826,6 @@ function appendProductGridStateToURL (url, query, pageID) {
                 }
 
                 // Now both properties "category type" and "category identifier" of this filter are valid
-
-                /* DEPRECATED: Replaced with "URLSearchParams API"
-                // If the "filters result" variable is still null, then make it into an array type before propagating it with filter entries
-                if (filtersResult === null) filtersResult = new Array(); 
-                */
-
-                /* DEPRECATED: Replaced with "URLSearchParams API"
-                // Create strings of key-value pairs:
-                // key:value = [category type]:[category identifier]
-                filtersResult.push(`${categoryType}=${categoryID}`);
-                */
 
                 URLResult.searchParams.set(filter.categoryType, filter.categoryID);
             }
@@ -1498,74 +871,6 @@ function appendProductGridStateToURL (url, query, pageID) {
         URLResult.searchParams.set("page", pageNumResult);
     }
 
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Check if there are NO results of "search string" AND "product filters" AND "page number"
-    if (!searchStrResult && !filtersResult && !pageNumResult) {
-        // Then only return an empty string, which is considered as a valid value that indicates an empty "product query" and a "page index" at 0 
-        return "";
-    }
-
-    // Now, there is at least one result variable that is valid
-    // To get the final output string, all the resulting data will be appended together, one-by-one
-    */
-
-    //  DEPRECATED: Replaced with "URLSearchParams API"
-    // /** An object of an "object-literal class" that appends strings, using the "URL query string" format  */
-    // const appendQueryStrObj = {
-    //     isFirst: true,
-    //     appendQueryStr: function (baseStrRef, appendStrRef) {
-    //         if (this.isFirst) {
-    //             baseStrRef += appendStrRef;
-    //             this.isFirst = false;
-    //         }
-    //         else baseStrRef += `&${appendStrRef}`;
-    //     }
-    // };
-
-    
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Declare the final resulting "URL query string", and start the query string with "?" to indicate a "query string" within a URL. It should be followed by one or more key-value pairs.
-    let queryStr = "?";
-    */
-
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Check if the property "search string" of query had any results
-    if (searchStrResult) {
-        
-        // BUG: The first key-value pair will have a redundant ampersand "&"
-        // Append with "&" to the query string
-        queryStr += `&${searchStrResult}`;
-        
-    }
-    */
-
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Check if the property "filters" of query had any results
-    if (
-        filtersResult
-        && Array.isArray(filtersResult)
-        && filtersResult.length > 0
-    ) {
-        // Iterate over every key-value pair of array "filters result"
-        for (const keyAndValue of filtersResult) {
-            // Append with "&" to the query string
-            queryStr += `&${keyAndValue}`;
-        }
-    }
-    */
-
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Check if there are any results for "page number"
-    if (pageNumResult) {
-        queryStr += `&${pageNumResult}`;
-    }
-    */
-
-    /* DEPRECATED: Replaced with "URLSearchParams API"
-    // Now the "final result" is a complete "URL query string" of format "?key1=value1&key2=value2&key3=value3 ..."
-    return queryStr;
-    */
-
     return URLResult;
 }
 
@@ -1594,27 +899,6 @@ function parseURLQueryString (urlStr) {
     }
 
     // Now, the "URL string" is considered valid and has been passed into a "URL API object"
-
-    // DEPRECATED: Replaced by using "URL API" and "URLSearchParams" for easier extraction
-    // // Check if the argument is undefined
-    // if (typeof urlStr === "undefined") {
-    //     console.error("Product Grid - parseURLQueryString: The argument 'URL' is undefined");
-    //     // Do no more work and return null, indicating an empty query
-    //     return null;
-    // }
-    // // If not undefined, check if the argument is invalid
-    // else if (
-    //     typeof urlStr !== "string"
-    //     || !urlStr
-    // ) {
-    //     // Do no more work and return null, indicating an empty query
-    //     return null;
-    // }
-    // 
-    // // Now, the "URL query string" argument is considered valid
-    // 
-    // // Create a URLSearchParams object for use of in-built utility methods for parsing "URL query strings". The constructor accepts strings with and without question mark "?" prefix.
-    // const URLSearchParamsObj = new URLSearchParams(urlStr);
 
     // Get the "URLSearchParams object" from the "URL API object"
     const URLsearchParamsObj = urlObj.searchParams;
@@ -1798,17 +1082,7 @@ function clearProductGrid () {
 
             // AND check if the reference is an instance of class "productEntry"
             && element instanceof productEntry
-        ) {
-            // DEPRECATED: attributesChangedCallback is replaced by using a direct function call 
-            //
-            // // Deactivate the "product entry" by clearing its data, which is stored in an attribute by design. In the module of "product entry", the "attributeChangedCallback" function will be called to process this.
-            // element.setAttribute("product-entry-data", "");
-
-            // DEPRECATED: Moved to the file "product_entry.js" to the class "productEntry"
-            //
-            // // Add to the "product entry pool"
-            // productEntryPool.push(element);
-            
+        ) {       
             // Remove from the DOM. The Custom Elements API lifecycle callback "disconnectedCallback" will be called on this instance
             element.remove();
         }
@@ -1832,7 +1106,8 @@ function updateEndOfResultsText () {
         return;
     }
 
-    // Check if the "endChunkID" is invalid
+    // TODO: Replace deprecated "endBlockID" with "endProductID"
+    // Check if the "endBlockID" is invalid
     if (
         typeof endBlockID === "undefined"
         || typeof endBlockID !== "number"
@@ -1843,6 +1118,8 @@ function updateEndOfResultsText () {
         return;
     }
     
+    // TODO: Replace deprecated fulfilledPropagationRequest.chunkID with currentProductPointer
+    // TODO: Replace deprecated endBlockID with endProductID
     // Check if the "current received chunk index" has reached the ending index, reported by the server on initialization
     if (fulfilledPropagationRequest.chunkID >= endBlockID) {
         // Show the "end of results text element"
@@ -1872,173 +1149,6 @@ function updateEndOfResultsText () {
         // Remove the element from the DOM, but keep its reference to allow re-usage
         endOfResultsText.element.remove();
     }
-}
-
-/** (DEPRECATED: Replaced by the other variant "comparePropagationRequestsForEquality") Compares two "chunk request" objects for equality by iterating through every nested values inside nested objects and arrays. For data structure details, please refer to the "chunkRequest" type.
- * @param {chunkRequest} chunkRequest1
- * @param {chunkRequest} chunkRequest2
- * @returns {boolean} - True for equality, false for inequality
- */
-function compareChunkRequestsForEquality (chunkRequest1, chunkRequest2) {
-    // "Chunk index" inequality
-    if (chunkRequest1.ID !== chunkRequest2.ID) return false;
-
-    // "Product query search string" inequality
-    if (chunkRequest1.query.searchStr !== chunkRequest2.query.searchStr) return false;
-
-    // "Product query filters" array length inequality
-    if (chunkRequest1.query.filters.length !== chunkRequest2.query.filters.length) return false;
-
-    // Now, the "filters" arrays have been concluded to have the same length 
-
-    // Iterate through the "filters" arrays, knowing that they have the same length
-    for (let i = 0; i < chunkRequest1.query.filters.length; i++) {
-        // "Category type" inequality
-        if (chunkRequest1.query.filters[i].categoryType !== chunkRequest1.query.filters[i].categoryType) return false;
-
-        // "Category identifier" inequality
-        if (chunkRequest1.query.filters[i].categoryID !== chunkRequest1.query.filters[i].categoryID) return false;
-    }
-
-    // When reaching this line, the entire "chunk request 1" and "chunk request 2" objects are considered equal for every nested value
-    return true;
-}
-
-/** (DEPRECATED: Replaced by "productGridRequest" variant) Compares two "propagation request" objects for equality by iterating through every nested values inside nested objects and arrays. For data structure details, please refer to the "propagationRequest" type.
- * @param {propagationRequest} request1
- * @param {propagationRequest} request2
- * @returns {boolean} - True for equality, false for inequality
- */
-function comparePropagationRequestsForEquality (request1, request2) {
-    // The algorithm varies for the two types of propagation requests: chunk and "index interval"
-    // Firstly, check if the two arguments are chunk type
-    if (
-        typeof request1.chunkID === "number"
-        && typeof request2.chunkID === "number"
-    ) {
-        // Check for "chunk index" inequality
-        if (request1.chunkID !== request2.chunkID) return false;
-    }
-
-    // Otherwise, check if two arguments are "index interval" type
-    else if (
-        typeof request1.interval.startID === "number"
-        && typeof request2.interval.startID === "number"
-        && typeof request1.interval.endID === "number"
-        && typeof request2.interval.endID === "number"
-    ) {
-        // Check for "index interval" inequality
-        if (
-            request1.interval.startID !== request2.interval.startID
-            || request1.interval.endID !== request2.interval.endID
-        ) return false;
-    }
-
-    // Neither type test succeeded, indicating that there is an invalid value
-    else {
-        console.error("Product Grid - comparePropagationRequestsForEquality: There is at least one invalid value about the the 'request' arguments");
-        // Return false for inequality
-        return false;
-    }
-
-    // Now, only the "product query" data remains to be tested
-
-    // "Product query search string" inequality
-    if (request1.query.searchStr !== request2.query.searchStr) return false;
-
-    // "Product query filters" array length inequality
-    if (request1.query.filters.length !== request2.query.filters.length) return false;
-
-    // Now, the "product query filters" arrays have been concluded to have the same length 
-
-    // Iterate through the "product query filters" arrays, knowing that they have the same length
-    for (let i = 0; i < request1.query.filters.length; i++) {
-        // "Category type" inequality
-        if (request1.query.filters[i].categoryType !== request1.query.filters[i].categoryType) return false;
-
-        // "Category identifier" inequality
-        if (request1.query.filters[i].categoryID !== request1.query.filters[i].categoryID) return false;
-    }
-
-    // When reaching this line, the entire "request 1" and "request 2" objects are considered equal for every nested value
-    // Return true for equality
-    return true;
-}
-
-/** (DEPRECATED: Moved to the productEntry class as a static method) Check if the given "product entry data response object" is valid or not
- * @param {productEntryDataResponse} productEntryData - The "product entry data response" object to validate
- * @returns {boolean} - Returns true for a valid object, and false for an invalid object. 
-*/
-function isProductEntryDataResponseValid (productEntryData) {
-    // Is undefined?
-    if (typeof productEntryData === "undefined") {
-        console.error("Product Grid - isProductEntryDataResponseValid: The argument 'product entry data response' is undefined");
-        return false;
-    }
-
-    // Is imgSrc invalid?
-    if (
-        typeof productEntryData.imgSrc === "undefined"
-        || (
-            typeof productEntryData.imgSrc !== "string"
-            && !(productEntryData.imgSrc instanceof URL)
-        )
-        || !productEntryData.imgSrc
-    ) return false;
-
-    // Is the URL of imgSrc invalid?
-    try {
-        // Use the in-built validation logic inside the URL constructor
-        url = new URL(productEntryData.imgSrc);
-    }
-    catch (e) {
-        // Check if the URL constructor returned a TypeError object to indicating an invalid URL address
-        if (e instanceof TypeError) return false;
-    }
-
-    // Is "name" invalid?
-    if (
-        typeof productEntryData.name === "undefined"
-        || typeof productEntryData.name !== "string"
-        || !productEntryData.name
-    ) return false;
-    
-    // Is "culture invalid"?
-    if (
-        typeof productEntryData.culture === "undefined"
-        || typeof productEntryData.culture !== "string"
-        || !productEntryData.culture
-    ) return false;
-
-    // Is priceCents invalid?
-    if (
-        typeof productEntryData.priceCents === "undefined"
-        || typeof productEntryData.priceCents !== "number"
-        || !Number.isInteger(productEntryData.priceCents)
-    ) return false;
-
-    // productURL invalid?
-    if (
-        typeof productEntryData.productURL === "undefined"
-        || (
-            typeof productEntryData.productURL !== "string"
-            && !(productEntryData.productURL instanceof URL)
-        )
-        || !productEntryData.productURL
-    ) return false;
-
-    // Is the URL of productURL invalid?
-    try {
-        // Use the in-built validation logic inside the URL constructor
-        url = new URL(productEntryData.productURL);
-    }
-    catch (e) {
-        // Check if the URL constructor returned a TypeError object to indicating an invalid URL address
-        if (e instanceof TypeError) return false;
-    }
-
-    // When reaching this line, the "product entry data response object" is considered valid
-    return true;
 }
 
 /** (TODO: Is this function replaced by the similar function for "product query options"?) Checks if the given "product filter object" is valid.
@@ -2498,14 +1608,6 @@ function fetchAndProcessProductGridResponse () {
                     // Then don't continue propagating the "product grid" with "product entries". Break this for-statement
                     break;
                 }
-                
-                // DEPRECATED: Moved to file "product_entry.js" to class "productEntry"
-                //
-                // Check if the "product entry data response object" is valid, by using a specialized function
-                // if (!isProductEntryDataResponseValid(productEntryData)) {
-                //     // Then skip this entry, don't count this iteration as a "successful product entry", and continue this for-loop
-                //     continue;
-                // }
 
                 /** The selected "product entry" element reference to use
                  * @type {productEntry} */
@@ -2519,30 +1621,6 @@ function fetchAndProcessProductGridResponse () {
                     // Then, skip this entry. Don't count this iteration as a "successful product entry". Continue this for-statement
                     continue;
                 }
-
-                // DEPRECATED: Moved to file "product_entry.js" to class "productEntry"
-                //
-                // // To get an instance of "product entry" check the "product entry pool" first before creating a new instance
-                // 
-                // // Does the "product entry pool" have any instances?
-                // if (productEntry.#productEntryPool.length > 0) {
-                //     // Then re-use one instance. It doesn't matter which instance is picked, as they are all reset since earlier
-                //     productEntryInstance = productEntry.#productEntryPool.pop();
-                // }
-                // 
-                // // Otherwise, the "product entry pool" is empty
-                // else {
-                //     // Create new "product entry" custom element
-                //     productEntryInstance = document.createElement("product-entry");
-                // 
-                //     // Create and add an attribute node for passing one "Product Entry Data Structure" as string type to the "Product Entry".
-                //     const attr = document.createAttribute("product-entry-data");
-                //     productEntryInstance.setAttributeNode(attr);
-                // }
-                // 
-                // // TODO: If possible, change to a module function call instead of using attributeChangedCallback. Less error-prone
-                // // The "product entry" implements the "attributeChangedCallback" of "custom elements API", as the constructor for applying data. The "product entry data object" is stringified/serialized so that it can be contained within an attribute
-                // productEntryInstance.setAttribute(JSON.stringify(productEntryData));
 
                 // Add the instance of "product entry" to the DOM
                 grid.appendChild(newProductEntry);
@@ -2876,7 +1954,7 @@ function compareProductQueryOptionsForEquality (queryOpt1, queryOpt2) {
 }
 
 /** (TODO: How to get millisecond representations?) Checks if the appropriate amount of time has passed since the last "Product Grid Request" was approved on the client-side before it was sent to the server. It selects the appropriate time threshold based on whether the newProductGridRequest and pendingProductGridRequest are different from each other or not. The intention is to ensure that requests are being sent too rapidly and putting redundant load on the server.
- * @returns {boolean} If timeout returns true. If closed, returns false.
+ * @returns {boolean} If timeout is open, returns true. If closed, returns false.
  */
 function checkRequestTimeoutThresholdForApproval () {
     // There are two different time thresholds for the request timeouts, depending on if the new request is the same as the previous one that was approved. 
@@ -2913,6 +1991,7 @@ function checkRequestTimeoutThresholdForApproval () {
     /** The current date object of this function call */
     const nowDate = new Date();
 
+    // TODO: Ensure that the millisecond representation is used
     // Calculate how much time that has passed since the last time that a "product grid request" was approved on the client-side before it was sent to the server
     // Check if the script-level lastProductGridRequestDate variable is valid
     if (lastProductGridRequestDate instanceof Date) {

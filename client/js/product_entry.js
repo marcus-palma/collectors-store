@@ -29,10 +29,6 @@
 
 // Declare and define an Autonomous Custom Element
 class productEntry extends HTMLElement {
-    // DEPRECATED: attributeChangedCallback is replaced by a direct function call
-    // Observe for attribute change, expecting incoming data needed for setting up this product entry object 
-    // static observedAttributes =  ["product-entry-data"];
-
     /** A pool of free, deactivated "product entries". Allows re-using old instances
      * @type {Array.<productEntry>} */
     static #productEntryPool = new Array();
@@ -119,28 +115,7 @@ class productEntry extends HTMLElement {
         // Check if HTML structure is NOT inserted yet
         if (!selectedProductEntry.#HTMLIsInserted) {
             // Then, create a promise to fetch and insert HTML. This function returns a promise consisting of a promise chain
-            const HTMLInsertionPromise = selectedProductEntry.#setEntryHTML()
-            
-            // DEPRECATED: Moved to MutationObserver callback
-            //
-            // // After the HTML has been set
-            // .then(() => {
-            //     // Before setting the data of the selected instance of "product entry", check it has been deactivated since the promise was queued
-            //     if (!selectedProductEntry.#isActivated) {
-            //         // Then, stop this promise and resolve it
-            //         return Promise.resolve();
-            //     }
-            //
-            //     // Set the data of "product entry", but use the value of a member variable. This allows another function call of this instance to overwrite the data to use when the promise settles
-            //     try { selectedProductEntry.#setProductData(selectedProductEntry.#pendingProductEntryData); }
-            //     catch (e) { return Promise.reject(`Product Entry - static createEntry: Caught an error while setting data of the selected "product entry" in the promise "HTMLInsertionPromise": ${e}`) }
-            //
-            //     // When reaching this line, this promise is considered successful. Resolve this promise.
-            //     return Promise.resolve();
-            // })
-            // 
-            // // Catch any potential, residual errors in the promise chain
-            // .catch((error) => console.error(`Product Entry - static createEntry: Caught an error in the promise "HTMLInsertionPromise": ${error}`));
+            const HTMLInsertionPromise = selectedProductEntry.#setEntryHTML();
         }
 
         // Otherwise, the HTML is already inserted
@@ -234,44 +209,6 @@ class productEntry extends HTMLElement {
         return true;
     }
 
-    // DEPRECATED: attributeChangedCallback is replaced by a direct function call
-    // DEPRECATED: To avoid a race condition, only let attributeChangedCallback to call #setEntryHTML
-    //connectedCallback() {
-    //    if (!this.#isWaitingForHTMLInsert) {
-    //        this.#setEntryHTML()
-    //        .catch((error) => console.error(`class productEntry - method connectedCallback: Caught an error when calling #setEntryHTML: ${error}`));
-    //    }
-    //}
-
-    /** (DEPRECATED: attributeChangedCallback is replaced by a direct function call) Get the changed attribute is expected to contain a string of a serialized "product entry data object" in "json" format */
-    attributeChangedCallback(name, oldValue, newValue) {
-        // Before setting any "product entry data", the inner DOM structure needs to be set up.
-        // An "immediately invoked function expression", that returns one or more promises based on conditions, effectively creating a modular promise chain.
-        (function () {
-            // Check if HTML structure is NOT inserted yet
-            if (!this.#HTMLIsInserted) {
-                // Then fetch and insert HTML. This function returns a promise chain
-                return this.#setEntryHTML();
-            }
-            
-            // Otherwise, only return a resolved promise to continue the outer promise chain
-            else return promise.resolve();
-        })()
-
-        .then(() => {
-            // Now, the DOM structure is set up
-
-            // Set "product entry data" with error-handling using a "try ... catch" statement
-            try { this.#setProductDataJSON(name, oldValue, newValue); }
-            catch (e) { return Promise.reject(`Product Entry - attributeChangedCallback: Caught an error when calling function 'setProductData': ${e}`); }
-
-            // When reaching this line, this promise is considered successful
-            return Promise.resolve();
-        })
-
-        .catch((error) => console.error(`class productEntry - method attributeChangedCallback: Caught an error in Promise chain: ${error} `));
-    }
-
     /** The Custom Elements API lifecycle callback when the custom element has been removed from the DOM */
     disconnectedCallback () {
         // Deactivate this instance
@@ -325,132 +262,6 @@ class productEntry extends HTMLElement {
             // When reaching this line, this promise is considered successful. Resolve it.
             return Promise.resolve();
         })
-    }
-
-    /** (DEPRECATED: attributeChangedCallback is replaced by a direct function call) Set "product entry data" in this "product entry" instance
-     * @param {string} name - The name of the changed attribute
-     * @param {string} oldValue - A string of a serialized "product entry data object" in "JSON" format is expected, but may also be an empty string
-     * @param {string} newValue - A string of a serialized "product entry data object" in "JSON" format is expected, but may also be an empty string
-     */ 
-    #setProductDataJSON(name, oldValue, newValue) {
-        // Expect attribute "product-entry-data"
-        if (name !== "product-entry-data") return;
-
-        // Firstly, check if an empty string as been passed in this attribute, indicating a request to deactivate this "product entry"
-        if (newValue === "") {
-            // Deactivate this instance
-            this.#deactivateOld();
-
-            // After deactivating, do no more work and return
-            return;
-        }
-
-        // Parse the "JSON" string into a JS object
-        /** The parsed "product entry data response object"
-         * @type {productEntryDataResponse}
-        */
-        const productEntryData = JSON.parse(newValue);
-
-        // Proceed to process each passed property according to the data structure
-        // Process the passed "imgSrc" data, which will be inserted as an "src" attribute for <img> element
-        imgSrcBlock: {
-            // Validate the passed property
-            if (typeof productEntryData.imgSrc === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.imgSrc but it's undefined");
-                // Then do no more work and break this labeled block
-                break imgSrcBlock;
-            }
-            
-            // Validate the class-level reference variable to the "img" element
-            if (this.#imgElem === null) {
-                console.error("class productEntry - method #setData: member #img is null");
-                // Then do no more work and break this labeled block
-                break imgSrcBlock;
-            }
-
-            // Insert passed data as an attribute
-            this.#imgElem.setAttribute("src", productEntryData.imgSrc);
-        };
-
-        // Process the passed "name" data, which will be inserted as "textContent" property value for the ".name" text element
-        nameBlock: {
-            // Validate the passed property
-            if (typeof productEntryData.name === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.name but it's undefined");
-                // Then do no more work and break this labeled block
-                break nameBlock;
-            }
-            
-            // Validate the reference to element
-            if (this.#nameElem === null) {
-                console.error("class productEntry - method #setData: member #name is null");
-                // Then do no more work and break this labeled block
-                break nameBlock;
-            }
-
-            // Insert passed data as text content
-            this.#nameElem.textContent = productEntryData.name;
-        };
-        
-        // Process the passed "culture" data, which will be inserted as "textContent" property value for the ".culture" text element
-        cultureBlock: {
-            // Validate the passed property
-            if (typeof productEntryData.culture === "undefined") {
-                console.error("class productEntry - method #setData: Expected property 'culture' but it's undefined");
-                // Then do no more work and break this labeled block
-                break cultureBlock;
-            }
-            
-            // Validate the reference to element
-            if (this.#cultureElem === null) {
-                console.error("class productEntry - method #setData: member #culture is null");
-                // Then do no more work and break this labeled block
-                break cultureBlock;
-            }
-
-            // Insert passed data as text content
-            this.#cultureElem.textContent = productEntryData.culture;
-        };
-
-        // Process the passed "price" data, which will be inserted as "textContent" property value for the ".price" text element
-        priceBlock: {
-            // Validate the passed property
-            if (typeof productEntryData.price === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.price but it's undefined");
-                // Then do no more work and break this labeled block
-                break priceBlock;
-            }
-            
-            // Validate the reference to element
-            if (this.#priceElem === null) {
-                console.error("class productEntry - method #setData: member #priceElem is null");
-                // Then do no more work and break this labeled block
-                break priceBlock;
-            }
-
-            // Store passed data for later use
-            this.#price = productEntryData.price;
-
-            // Insert passed data as text content
-            const priceStr = productEntryData.price.toString();  // nnn... 1/100 parts
-            const wholeCurrencyUnits = priceStr.substring(0, priceStr.length - 3); // length-1 for last index, lastIndex-2 for whole units
-            const fractionCurrencyUnits = priceStr.substring (priceStr.length - 3, priceStr.length - 1);  // From last substring to last index
-            this.#priceElem.textContent = `${wholeCurrencyUnits}.${fractionCurrencyUnits} USD`;  // Displaying whole units with 2 fraction decimals
-        };
-
-        // Process the passed "productURL" data, which is expected to link a "product view URL" from this "product entry"
-        prodURLBlock: {
-            // Check if the "product URL" property is undefined
-            if (typeof productEntryData.productURL === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.productURL but it's undefined");
-                // Then do no more work and break this labeled block
-                break prodURLBlock;
-            }
-            
-            // Enable the "hypertext link" of the container, which would make this "product entry" a clickable link.
-            // Set the "href" attribute of the container, which is an HTML <a> anchor element
-            this.#container.href = productEntryData.productURL;
-        };
     }
 
     /** Set the data of this "Product Entry" by setting each respective element
@@ -575,21 +386,6 @@ class productEntry extends HTMLElement {
         }
     }
 
-    /** (DEPRECATED: Replaced by the public method) Deactivate the "this" instance of "product entry", for stashing it in the "product entry pool" and making it available for re-use. The deactivation is done by simply clearing all data */
-    #deactivateOld () {
-        // Clear data internally and in HTML elements
-        // Data that should be preserved and will not be cleared:
-        // - The inner DOM
-        // - The private property #HTMLIsInserted
-        
-        this.#nameElem.textContent = "";
-        this.#cultureElem.textContent = "";
-        this.#imgElem.src = "";
-        this.#price = null;
-        this.#priceElem.textContent = "";
-        this.#container.href = "";
-    }
-
     /** Deactivate the "this" instance of "product entry", for stashing it in the "product entry pool" and making it available for re-use. The deactivation is done by simply clearing all data */
     #deactivate () {
         // Set the flag for activation state, to stop any promises from doing work that is no longer needed
@@ -667,18 +463,5 @@ class productEntry extends HTMLElement {
 ////////////////////////////////////////
 // Main functionality
 ////////////////////////////////////////
-
-// // DEPRECATED: Replaced by using a fetch for a JSON file
-// function placeholderFunc () {
-//     const img = document.body.querySelector(".image");
-//     const name = document.body.querySelector(".name");
-//     const culture = document.body.querySelector(".culture");
-//     const price = document.body.querySelector(".price");
-// 
-//     img.src = "media/icons/centaur_placeholder_512x.png"
-//     name.textContent = "Centaur";
-//     culture.textContent = "Greek Mythology";
-//     price.textContent = "12.00 USD";
-// }
 
 window.customElements.define("product-entry", productEntry);
