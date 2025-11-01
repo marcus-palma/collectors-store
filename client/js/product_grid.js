@@ -296,8 +296,14 @@ function initializeGrid (
     else console.error("Product Grid - initializeGrid: argument 'maxProductsParam' is invalid");
 
     // Store the setting for enabling page-mode
+    // Check if the type is valid
     if (typeof enablePages === "boolean") {
-        arePagesEnabled = enablePages;
+        // Check if the vertical "growth direction" option is used. Reason: Pages are only available for vertical mode.
+        if (growthDirectionParam === "vertical") {
+            // Then, use the parameter value to assign the script-level variable
+            arePagesEnabled = enablePages;
+        }
+        else console.error("Product Grid - initializeGrid: option 'enablePages' is set to true, but the option 'growthDirectionParam' is NOT set to 'vertical', which is not allowed with the former option");
     }
     else console.error("Product Grid - initializeGrid: argument 'arePagesEnabled' is invalid");
     
