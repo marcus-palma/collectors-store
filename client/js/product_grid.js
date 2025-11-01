@@ -113,10 +113,6 @@ let blockSize;
  * @type {number} */
 let currentProductPointer = null;
 
-/** (DEPRECATED: Will be replaced by endProductID) (number ≤ 0 | number ≥ 1) The ending index of chunks that the server matched with the currentQuery. Assigned once from a server response when loading the "Product Grid" feature. A value equal or less than zero indicates that there are no results for this query 
- * @type {number} */
-let endBlockID;
-
 /** A option for the "Product Grid". If true, apply "page-by-page mode". Some of the effects involves creating and adding a "Page Bar" and a "Horizontal Bar" feature.
  * @type {boolean} */
 let arePagesEnabled;
@@ -153,17 +149,6 @@ let lastAvailableProductID = null;
  * @type {number}
  * @memberof {gridOptions} */
 let maxProducts;
-
-/** (DEPRECATED: Replaced by fulfilledProductGridRequest) The most recently fulfilled "product grid propagation request". The intention is to avoid redundant new requests
- * @type {propagationRequest} */
-let fulfilledPropagationRequest = {
-    chunkID: null,
-    interval: {
-        startID: null,
-        endID: null
-    },
-    query: null
-}
 
 /** A script-level variable for storing a new "product grid request object", that might become the next pending request.
  * @type {productGridRequest} */
@@ -257,17 +242,6 @@ let productFilterMenuTemplate = null;
 
 /** @type validProductFilterStringsStruct */
 let validProductFilterStrings;
-
-/** (DEPRECATED: Replaced by checking date difference on demand) Timeout-gates for "requests to propagate the product grid" that are equal to their previous ones, and requests that are inequal to their previous ones. The intention is to use different duration for the timeout depending on whether the request is same or different.
- * @type {requestTimeoutGates}
- * @typedef requestTimeoutGates
- * @property {boolean} isOpenForRetry - If true, the gate is open for repeated requests. If false, the gate is closed.
- * @property {boolean} isOpenForNew - If true, the gate is open for new requests. If false, the gate is closed.
-*/
-const requestTimeoutGates = {
-    isOpenForRetry: true,
-    isOpenForNew: true
-};
 
 /** The timestamp of the last time that a "Product Grid Request" was approved on the client-side before it was sent to the server
  * @type {Date} */
@@ -382,17 +356,13 @@ function initializeGrid (
 }
 
 /** Checks if the current state of the "Product Grid" fulfills the general pre-requisites in the client to propagate the "Product Grid" container with "Product Entry" entries.
- * @param {number | null} chunkIDToRequest - The "chunk index" to request for. Defaults to the next index after the current index
  * @returns {boolean} If the circumstances meets the pre-requisites, returns true. If not, returns false.
  * @throws {Error} If the script-level "product grid request" variables are invalid
  */
 function checkPreRequisitesToFetchAndPropagateGrid () {
-    // Ensure that approved requests are not occuring too rapidly, putting redundant load on the server. Therefore, check if the corresponding "timeout gate" is open for this type of request.
-    // There are two different timer durations for the "timeout gates". Use an algorithm to determining request equality, that depends the type of request.
-
-    // TODO: Replace the variable requestTimeoutGates with the function checkRequestTimeoutThresholdForApproval()
-    // Firstly, check if both of the timeout-gates are NOT open
-    if (!requestTimeoutGates.isOpenForRetry && !requestTimeoutGates.isOpenForNew) {
+    // Firstly, ensure that approved requests are not occuring too rapidly, putting redundant load on the server.
+    // Check if it has NOT passed enough time since the last request, by checking if the corresponding timeout threshold for the new "product grid request" is NOT approved.
+    if (!checkRequestTimeoutThresholdForApproval()) {
         // Then, do nothing and return false for rejection
         return false;
     }
@@ -402,8 +372,8 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
     let isNewRequestEqualToFulfilled = null;
 
     // Compare the new request with the fullfilled request
-    // TODO: The comparison function may throw an error
-    try { isNewRequestEqualToFulfilled = comparePropagationRequestsForEquality(newProductGridRequest, fulfilledProductGridRequest); }
+    // The comparison function may throw an error
+    try { isNewRequestEqualToFulfilled = compareProductGridRequestForEquality(newProductGridRequest, fulfilledProductGridRequest); }
     catch (e) { throw new Error(`Product Grid - checkPreRequisitesToFetchAndPropagateGrid: Caught error while getting the result of comparing the new "product grid request" with the fulfillled request, to determine which timeout-gate to use: ${e}`) }
 
     // Check the result from the comparison, to see if the new request is the same as the fulfilled request
@@ -412,51 +382,6 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
         return false;
     }
 
-    /** If true, the requested data is the same as the data in the pending request. If false, the requested data is different from the pending request.
-     * @type {boolean} */
-    let isNewRequestEqualToPending = null;
-
-    // Compare the new request with the pending request
-    // The comparison function may throw an error
-    try { isNewRequestEqualToPending = comparePropagationRequestsForEquality(newProductGridRequest, pendingProductGridRequest); }
-    catch (e) { console.error(`Product Grid - checkPreRequisitesToFetchAndPropagateGrid: Caught error while getting the result of comparing the new "product grid request" with the pending request, to determine which timeout-gate to use: ${e}`) }
-
-    // Check which gate to use depending on if the new request is equal or inequal to the previous request
-    if (isNewRequestEqualToPending) {
-        // Check if the gate for equal requests is open
-        if (requestTimeoutGates.isOpenForRetry) {
-            // Close this gate after passing through it
-            requestTimeoutGates.isOpenForRetry = false;
-
-            // Start a timer for opening the gate again. The duration is longer for equal requests
-            setTimeout(() => requestTimeoutGates.isOpenForRetry = true, 4000);
-        }
-
-        // Otherwise, the gate for equal requests is closed
-        else {
-            // Then, return false for rejection
-            return false;
-        }
-    }
-
-    // Else, this is an inequal request. This else-statement will also be the fallback if isRequestEqual still is null because of an error.
-    else {
-        // Check if the gate for inequal requests is open
-        if (requestTimeoutGates.isOpenForNew) {
-            // Close this gate after passing through it
-            requestTimeoutGates.isOpenForNew = false;
-
-            // Start a timer for opening the gate again. The duration is shorter for inequal requests
-            setTimeout(() => requestTimeoutGates.isOpenForNew = true, 2000);
-        }
-
-        // Otherwise, the gate for inequal requests is closed
-        else {
-            // Then do nothing and return false for rejection
-            return false;
-        }
-    }
-    
     // Check if the "start index" of the new "product grid request" has reached the end of the available results, by checking the script-level "last available product entry index" variable
     if (
         // Check if lastAvailableProductID is valid
@@ -464,7 +389,7 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
         && lastAvailableProductID >= 0
 
         // AND check if the "start index" property value is NOT omitted by leaving it as null
-        // AND check if the "start index" property is reaching is exceeding the last available index
+        // AND check if the "start index" property is reaching or exceeding the "last available product entry index"
         && newProductGridRequest.startID !== null
         && newProductGridRequest.startID >= lastAvailableProductID
     ) return false;
@@ -476,7 +401,7 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
         && maxProducts > 0
 
         // AND check if the "start index" property value is NOT omitted by leaving it as null
-        // AND check if the "start index" property is reaching or being past the last available index
+        // AND check if the "start index" property, converted to a 1-based number, is exceeding the "max product entries"
         && newProductGridRequest.startID !== null
         && newProductGridRequest.startID+1 > maxProducts
     ) return false;
@@ -500,7 +425,7 @@ function checkPreRequisitesToFetchAndPropagateGrid () {
     return true;
 }
 
-/** Update the value of "pageSize" when the value of "chunkSize" has been changed, which normally only happens during the initialization of the "product grid". */
+/** Update the value of "pageSize" when the value of "blockSize" has been changed, which normally only happens during the initialization of the "product grid". */
 function updatePageSize() {
     // Firstly, check if pages are disabled. If true, return.
     if (!arePagesEnabled) return;
@@ -538,7 +463,7 @@ function updatePageBar() {
     if (typeof numPages !== "number") {
         // If true, this function call is considered failed
         console.error(`Product Grid - updatePageBar: the variable 'numPages' has an invalid type that is not 'number': ${typeof numPages}`);
-        // Don't any work and return
+        // Don't do any work and return
         return;
     }
 
@@ -633,18 +558,69 @@ function updatePageBar() {
     lastNumPages = numPages;
 }
 
-/** (TODO: Replace deprecated "endBlockID" with "endProductID") Update the number of available pages that was reported from the server for the current query */
+/** Update the number of available pages that was reported from the server for the current query */
 function updateNumPages () {
-    // Before proceeding, check if endChunkID is NOT valid
-    if (!Number.isInteger(endBlockID)) console.error("Product Grid - updateNumPages: variable 'endChunkID' is invalid");
-    
-    // Calculate the number of pages by dividing the number of available chunks reported from server, with the page size from the client. Note: pageSize is expressed as "number of chunks per page"
-    const result = (endBlockID + 1) / pageSize;
-    
-    // Check if the result is invalid. There can't be zero pages, even if there are no results
-    if (result <= 0) console.error("Product Grid - updateNumPages: Result from calculation has a zero or negative value");
+    // Before proceeding, check if lastAvailableProductID is null
+    if (lastAvailableProductID === null) {
+        // Then, do nothing and return
+        return;
+    }
 
-    numPages = result;
+    // Otherwise, check if lastAvailableProductID is NOT valid
+    else if (
+        // Check if the type is NOT a number
+        typeof lastAvailableProductID !== "number"
+
+        // Check if the value is a positive integer
+        || !Number.isInteger(lastAvailableProductID)
+        || lastAvailableProductID < 0
+    ) {
+        console.error("Product Grid - updateNumPages: The script-level variable 'lastAvailableProductID' is invalid.");
+        // Then, do nothing and return
+        return;
+    }
+
+    // Check if the script-level variable "page size" is invalid 
+    if (
+        // Check if it's NOT an integer
+        !Number.isInteger(pageSize)
+
+        // Check if page size is NOT positive and has a reasonable value
+        || pageSize < 8
+    ) {
+        console.error("Product Grid - updateNumPages: The script-level variable 'pageSize' is invalid.");
+        // Then, do nothing and return
+        return;        
+    }
+    
+    /** The new "number of product grid pages"
+     * @type {number} */
+    let newNumPages = null;
+    
+    // TODO: Fix the case when lastAvailableProductID is null or invalid
+    // TODO: Check if pageSize is valid
+    // Calculate the number of pages by selecting the ceiling of the quotient between server-side "last available product entry index", converted to 1-based number, and the client-side "page size".
+    // NOTE: pageSize is expressed as "number of products per page".
+    newNumPages = Math.ceil((lastAvailableProductID + 1) / pageSize);
+    
+    // Check if the result is invalid. 
+    if (
+        // Check it's NOT an integer
+        !Number.isInteger(newNumPages)
+
+        // Check if it's a possible or non-zero value. There can't be zero pages, even if there are no results.
+        || newNumPages <= 0
+    ) {
+        console.error("Product Grid - updateNumPages: Result 'newNumPages' from calculation is invalid, because it's not a positive integer.");
+        
+        // Then, do nothing and return
+        return;
+    }
+
+    // When reaching this line, the new "number of product grid pages" result is considered valid
+
+    // Use the new result to assign the script-level "number of product grid pages" variable
+    numPages = newNumPages;
 }
 
 /** The event handler for "click" event for every "page number" element
@@ -667,14 +643,29 @@ function handlePageBarClick (event) {
     // Now, the "clicked element index" value is considered as a valid "page index" that has been clicked on 
 
     // Change page to the "clicked element index"
-    changePageInProductGrid(clickedElementID);
+    // This function may throw an error
+    try { changePageInProductGrid(clickedElementID) }
+    catch (e) { console.error(`Product Grid - handlePageBarClick: Caught an error when trying to change the "product grid page": ${e}`) }
 }
 
 /** Change the "product results page" in the "product grid" to the given "page index"
  * @param {number} newPageID - The index, 0-based, of the new page to open 
 */
 function changePageInProductGrid (newPageID) {
-    // Before making any changes to the state of the "product grid", do a custom set up of a new "product grid request", and test it against custom pre-requisites before it can be approved for being sent to the server
+    // Check if the arguement newPageID is invalid
+    if (
+        // Check if the type is NOT a number
+        typeof newPageID !== "number"
+
+        // Check if the value is NOT a positive integer
+        || !Number.isInteger(newPageID)
+        || newPageID < 0
+    ) {
+        // Then, do nothing and throw an error
+        throw new Error("Product Grid - changePageInProductGrid: The argument 'newPageID' is invalid");
+    }
+    
+    // Before making any changes to the state of the "product grid", do a custom set up of a new "product grid request", and test it against custom pre-requisites before it can be approved for being sent to the server.
     
     // For the "start index" of this "product grid request", set it to the first "product entry index" of the new "product grid page"
     newProductGridRequest.startID = getProductPointerForPageID(newPageID) + 1;
@@ -695,8 +686,8 @@ function changePageInProductGrid (newPageID) {
 
     // Use the general routine for manipulating the browsing history while changing the state of the "product grid"
     // The function can potentially throw errors
-    try { generalHistoryManipulation() }
-    catch (e) { console.error(`Caught an error while calling the general function for manipulating the browsing history: ${e}`) }
+    try { generalHistoryManipulation(newPageID) }
+    catch (e) { console.error(`Product Grid - changePageInProductGrid: Caught an error while calling the general function for manipulating the browsing history: ${e}`) }
 
     // Before changing the value of "current page index", remember its current value as the "last page index"
     lastPageID = currentPageID;
@@ -717,7 +708,9 @@ function changePageInProductGrid (newPageID) {
     lastProductGridRequestDate = new Date();
 
     // Finally, fetch a "product grid response" with the new "product grid request" and process it
-    fetchAndProcessProductGridResponse();
+    // This function may throw an error
+    try { fetchAndProcessProductGridResponse() }
+    catch (e) { throw new Error(`Product Grid - changePageInProductGrid: Caught an error when trying to fetch and process the "product grid response": ${e}`) }
 }
 
 
@@ -1066,12 +1059,15 @@ function validateProductQueryOptionsObj (query) {
     return true;
 }
 
-/** Clear the "product grid" on all "product entry" instances and move their references to the "product entry pool". This function may be used when the "product grid page" or "product query" have changed. This function does not change any counter or index variable */
+/** Clear the "product grid" on all "product entry" instances and subtracts the product counter and pointer. This function may be used when the "product grid page" or "product query" have changed */
 function clearProductGrid () {
 
     /** All child elements of the "grid container"
      * @type {HTMLCollection} */
     const children = grid.children;
+
+    /** The number of removed "product entries" */
+    let numRemoved = 0;
 
     // Iterate through every child element of the "grid container"
     for (const element of children) {
@@ -1083,45 +1079,53 @@ function clearProductGrid () {
             // AND check if the reference is an instance of class "productEntry"
             && element instanceof productEntry
         ) {       
-            // Remove from the DOM. The Custom Elements API lifecycle callback "disconnectedCallback" will be called on this instance
+            // Remove from the DOM. The Custom Elements API lifecycle callback "disconnectedCallback" will be called on this instance and do internal work
             element.remove();
+
+            // Count this as one removed "product entry"
+            numRemoved++;
         }
         // If there are any other elements of any other type in this container, don't remove those unless there is a need for it.
     }
+
+    // Update the script-level variables "number of product entries" and "current product entry index pointer" by subtracting with the same number of entries that were removed in this function call.
+    numProducts -= numRemoved;
+    currentProductPointer -= numRemoved;
 }
 
-/** TODO: Update the "End of results" text after the end of the grid */
+/** Update the "End of results" text after the end of the grid */
 function updateEndOfResultsText () {
     // Check if pages are NOT enabled. Then, do nothing and return
     if (!arePagesEnabled) return;
     
-    // Check if the property "chunk index" of the script-level variable "fulfilled propagation request" is invalid
+    // Check if the script-level variable "current product entry pointer" is invalid
     if (
-        typeof fulfilledPropagationRequest.chunkID === "undefined"
-        || typeof fulfilledPropagationRequest.chunkID !== "number"
-        || fulfilledPropagationRequest.chunkID < 0
+        typeof currentProductPointer === "undefined"
+
+        // Check if currentProductPointer NOT a positive integer number
+        || !Number.isInteger(currentProductPointer)
+        || currentProductPointer < 0
     ) {
-        console.error("Product Grid - updateEndOfResultsText: the property 'chunk index' of the script-level variable 'fulfilled propagation request' is invalid.");
+        console.error("Product Grid - updateEndOfResultsText: the script-level variable 'currentProductPointer' is invalid.");
         // Do nothing and return
         return;
     }
 
-    // TODO: Replace deprecated "endBlockID" with "endProductID"
-    // Check if the "endBlockID" is invalid
+    // Check if the lastAvailableProductID is invalid
     if (
-        typeof endBlockID === "undefined"
-        || typeof endBlockID !== "number"
-        || endBlockID < 0
+        typeof lastAvailableProductID === "undefined"
+
+        // Check if currentProductPointer NOT a positive integer number
+        || !Number.isInteger(lastAvailableProductID) 
+        || lastAvailableProductID < 0
     ) {
-        console.error("Product Grid - updateEndOfResultsText: the script-level variable 'endChunkID' is invalid.");
+        console.error("Product Grid - updateEndOfResultsText: the script-level variable 'lastAvailableProductID' is invalid.");
         // Do nothing and return
         return;
     }
     
-    // TODO: Replace deprecated fulfilledPropagationRequest.chunkID with currentProductPointer
-    // TODO: Replace deprecated endBlockID with endProductID
-    // Check if the "current received chunk index" has reached the ending index, reported by the server on initialization
-    if (fulfilledPropagationRequest.chunkID >= endBlockID) {
+    // Check if the "current product entry index pointer" has reached or exceeded the "last available product entry index", reported by the server for the current query results
+    if (currentProductPointer >= lastAvailableProductID) {
         // Show the "end of results text element"
         
         // Check if the element is NOT created yet?
@@ -1140,10 +1144,10 @@ function updateEndOfResultsText () {
         endOfResultsText.container.appendChild(endOfResultsText.element);
     }
 
-    // Otherwise, the "current received chunk index" has NOT reached the ending index
+    // Otherwise, the "current product entry index pointer" has NOT reached or exceeded the "last available product entry index"
     else {
         // Hide the "end of results text element"
-        // Check if the element is NOT created
+        // Check if the element is NOT created. Then, do nothing and return.
         if (endOfResultsText.element === null) return;
         
         // Remove the element from the DOM, but keep its reference to allow re-usage
@@ -1221,61 +1225,7 @@ function setHorizontalBarVisibility (doShow) {
     }
 }
 
-/** A setter function for the script-level variable "current product query". Only intended for usage after the initalization, such as applying a search term in the "search bar" in "header", or when applying settings in the "product filter menu".
- * @param {productQueryOptions} query - The new "product query" value. Undefined filters or searchStr property indicates no change, but null values are treated as intentional. 
-*/
-function setCurrentQueryOptionsVar (query) {
-    
-    // Check if pages are NOT enabled
-    if (!arePagesEnabled) {
-        console.error("Product Grid - setCurrentQuerySettingsVar: The script-level variable 'are pages enabled' is false, while expecting it to be true");
-        // Do nothing and return
-        return;
-    }
-
-    let wasOnePropertySuccessful = false;
-    
-    filtersBlock: {
-        // Check if property "product filters" is undefined
-        if (typeof query.filters === "undefined") {
-            // Then, do no more work in this block and return to outer block
-            break filtersBlock;
-        }
-
-        currentQueryOptions.filters = query.filters;
-        wasOnePropertySuccessful = true;
-    }
-
-    searchStrBlock: {
-        // Check if property "search string" is undefined
-        if (typeof query.searchStr === "undefined") {
-            // Then, do no more work in this block and return to outer block
-            break searchStrBlock;
-        }
-
-        currentQueryOptions.searchStr = query.searchStr;
-        wasOnePropertySuccessful = true;
-    }
-
-    // If no property was successfully set, then do nothing and return 
-    if (!wasOnePropertySuccessful) return;
-
-    // TODO: Fetch the new endChunkID from server, and wrap the rest of the function in a then-promise
-
-    // Since the "product query" has been changed, update the "page state"
-    updatePageState();
-
-    // Clear the "product grid" to make it empty of "product entries"
-    clearProductGrid();
-
-    // Reset the "chunk index" for this page
-    getProductPointerForPageID(currentProductPointer, currentPageID);
-
-    // And lastly, request to propagate the "product grid" with "product entries"
-    requestToFetchAndPropagateGrid();
-}
-
-/** Update the states of the "product grid page" feature. This function should be run when changes as been made to the "product query", "product entry chunk size", "product entry ending chunk index", or "product entry ending product index" */
+/** Update the states of the "product grid page" feature. This function should be run when changes as been made to the "product query", "product entry block size", or "last available product entry index" */
 function updatePageState () {
     // "update page size" should always evaluate before every other routine for the "page state"
     updatePageSize();
@@ -1316,9 +1266,9 @@ function getProductPointerForPageID (pageID) {
     return (pageID - 1) * pageSize - 1;
 }
 
-/** (TODO) A general set up for the script-level "new product grid request" variable. Intended to evaluate before the "pre-requisites to propagate the product grid" function */
+/** A general set up for the script-level "new product grid request" variable. Intended to evaluate before the "pre-requisites to propagate the product grid" function */
 function generalSetupOfNewProductGridRequest () {
-    // TODO: Should the variable be nullified before setting it up? Probably somewhere else
+    // TODO: Make sure that the newProductGridRequest is nullified at every endpoint of this call hierarchy
     
     // Set up the "start index" of the new "product grid request"
     // First, check if the property is still null, indicating that is not already set earlier
@@ -1401,12 +1351,11 @@ function fetchAndProcessProductGridResponse () {
 
     try { fetchURL = new URL("source/collectors-store/client/json/product_grid_response_sample.json"); }
     catch (e) {
-        if (e instanceof TypeError) console.error("Product Grid - fetchAndProcessProductGridResponse: The URL constructor received an invalid URL address");
-        else console.error(`Product Grid - addQueryOptionsToURL: Caught an error while creating a new URL object: ${e}`);
-        
-        // Reset the new "product grid request" and return
+        // Then, reset the new "product grid request" and throw an error
         nullifyNewProductGridRequest();
-        return;
+
+        if (e instanceof TypeError) throw new TypeError("Product Grid - fetchAndProcessProductGridResponse: The URL constructor received an invalid URL address");
+        else throw new Error(`Product Grid - addQueryOptionsToURL: Caught an error while creating a new URL object: ${e}`);
     }
 
     // Insert the properties of the new "product grid request" variable into the "query" part of the URL 
@@ -1452,7 +1401,7 @@ function fetchAndProcessProductGridResponse () {
         if (
             typeof JSONText === "undefined"
             || typeof JSONText !== "string"
-        ) return Promise.reject("Product Grid - fetchAndProcessProductGridResponse: The argument 'JSONText', passed from the previous promise, is invalid.");
+        ) return Promise.reject("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The argument 'JSONText', passed from the previous promise, is invalid.");
 
         // Parse the "JSON Text" into a "JavaScript object"
         /** The "product grid response" object that has been parsed from "JSON text" from the server
@@ -1481,7 +1430,7 @@ function fetchAndProcessProductGridResponse () {
             hasProductGridRequestChangedWhileWaiting = !compareProductGridRequestForEquality(thisFetchProductGridRequest, pendingProductGridRequest);
             hasProductQueryOptChangedWhileWaiting = !compareProductQueryOptionsForEquality(thisFetchProductQueryOpt);
         }
-        catch (e) { console.error(`Product Grid - fetchAndProcessProductGridResponse: Caught an error while using functions for checking if the properties of the pending "Product Grid Request" have changed: ${e}`) };
+        catch (e) { console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: Caught an error while using functions for checking if the properties of the pending "Product Grid Request" have changed: ${e}`) };
 
         // Process the blockSize property of the "product grid response" in a labeled block
         blockSizeBlock: {
@@ -1501,7 +1450,7 @@ function fetchAndProcessProductGridResponse () {
                 typeof productGridResponse.blockSize === "undefined"
                 && thisFetchProductGridRequest.getBlockSize
             ) {
-                console.error("Product Grid - fetchAndProcessProductGridResponse: The blockSize property is missing from the response, even though the get-directive for this property was used");
+                console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The blockSize property is missing from the response, even though the get-directive for this property was used");
                 // Then, don't process this property. Break this labeled block.
                 break blockSizeBlock;
             }
@@ -1512,7 +1461,7 @@ function fetchAndProcessProductGridResponse () {
                 || !Number.isInteger(productGridResponse.blockSize)
                 || productGridResponse.blockSize <= 0
             ) {
-                console.error("Product Grid - fetchAndProcessProductGridResponse: The blockSize property in the response is invalid.")
+                console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The blockSize property in the response is invalid.")
                 // Then, don't process this property. Break this labeled block
                 break blockSizeBlock;
             }
@@ -1534,7 +1483,7 @@ function fetchAndProcessProductGridResponse () {
                 typeof productGridResponse.lastAvailableID === "undefined"
                 && thisFetchProductGridRequest.getLastAvailableID
             ) {
-                console.error("Product Grid - fetchAndProcessProductGridResponse: The lastAvailableID property is missing from the response, even though the get-directive for this property was used");
+                console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The lastAvailableID property is missing from the response, even though the get-directive for this property was used");
                 // Then, don't process this property. Break this labeled block.
                 break lastAvailableIDBlock;
             }
@@ -1545,7 +1494,7 @@ function fetchAndProcessProductGridResponse () {
                 || !Number.isInteger(productGridResponse.lastAvailableID)
                 || productGridResponse.lastAvailableID < 0
             ) {
-                console.error("Product Grid - fetchAndProcessProductGridResponse: The lastAvailableID property in the response is invalid.")
+                console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The lastAvailableID property in the response is invalid.")
                 // Then, don't process this property. Break this labeled block
                 break lastAvailableIDBlock;
             }
@@ -1583,7 +1532,7 @@ function fetchAndProcessProductGridResponse () {
                 || !Array.isArray(productGridResponse.productEntries)
                 || productGridResponse.productEntries.length <= 0
             ) {
-                console.error("Product Grid - fetchAndProcessProductGridResponse: The productEntries property in the response is invalid.")
+                console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise:: The productEntries property in the response is invalid.")
                 // Then, don't process this property. Break this labeled block
                 break productEntriesBlock;
             }
@@ -1616,7 +1565,7 @@ function fetchAndProcessProductGridResponse () {
                 // The method may throw an error
                 try { newProductEntry = productEntry.createEntry(productEntryData) }
                 catch (e) {
-                    console.error(`Product Grid - fetchAndProcessProductGridResponse: Caught an error while creating an instance of class "productEntry": ${e}`);
+                    console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise:: Caught an error while creating an instance of class "productEntry": ${e}`);
 
                     // Then, skip this entry. Don't count this iteration as a "successful product entry". Continue this for-statement
                     continue;
@@ -1672,7 +1621,7 @@ function fetchAndProcessProductGridResponse () {
                 catch (e) { return Promise.reject(e) }
                 return Promise.resolve();
             })
-            .catch((error) => { console.error(`Product Grid - fetchAndProcessProductGridResponse: Caught an error in the promise that calls the function updateEndOfResultsText: ${error}`) });
+            .catch((error) => { console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: Caught an error in the promise that calls the function updateEndOfResultsText: ${error}`) });
         }
 
         // Process the property "product filter menu template" in a labeled block
@@ -1680,7 +1629,7 @@ function fetchAndProcessProductGridResponse () {
             // Check if this property is undefined
             if (typeof productGridResponse.productFilterMenuTemplate === "undefined") {
                 // Check if this property was expected, by checking the get-directive of this request
-                if (thisFetchProductGridRequest.getProductFilterMenuTemplate) console.error("Product Grid - fetchAndProcessProductGridResponse: The property productFilterMenuTemplate is expected but is undefined");
+                if (thisFetchProductGridRequest.getProductFilterMenuTemplate) console.error("Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: The property productFilterMenuTemplate is expected but is undefined");
                 
                 // Then, don't process this property. Break this labeled block.
                 break productFilterMenuTemplateBlock;
@@ -1695,7 +1644,7 @@ function fetchAndProcessProductGridResponse () {
     })
 
     // The error handler for the fetch-and-process promise chain
-    .catch((error) => { console.error(`Product Grid - fetchAndProcessProductGridResponse: Caught an error in the promise fetchAndProcessPromise: ${error}`) });
+    .catch((error) => { console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise: Caught an error in the promise fetchAndProcessPromise: ${error}`) });
 
     // Lastly, after creating a promise chain, reset the "new product grid request" by replacing its object with a object with all properties set to null
     nullifyNewProductGridRequest();
@@ -1722,12 +1671,17 @@ function getAvailableSpaceForPropagation (newProductPointer) {
     /** @type {number | null} */
     let availableSpaceForMaxNum = null;
 
-    /** @type {number | null */
+    /** @type {number | null} */
     let availableSpaceOnPage = null;
 
-    // Before using the script-level lastAvailableProductID, check if it's valid
-    if (
-        // Check if the value is valid
+    // Before using the script-level lastAvailableProductID, check if it's null
+    if (lastAvailableProductID === null) {
+        // Then, don't set the local variable availableSpaceForLastID by breaking this "if...else" chain
+    }
+    
+    // Otherwise, check if the value is valid for use
+    else if (
+        // Check if the value is a positive integer
         Number.isInteger(lastAvailableProductID)
         && lastAvailableProductID > 0
 
@@ -1953,7 +1907,7 @@ function compareProductQueryOptionsForEquality (queryOpt1, queryOpt2) {
     return true;
 }
 
-/** (TODO: How to get millisecond representations?) Checks if the appropriate amount of time has passed since the last "Product Grid Request" was approved on the client-side before it was sent to the server. It selects the appropriate time threshold based on whether the newProductGridRequest and pendingProductGridRequest are different from each other or not. The intention is to ensure that requests are being sent too rapidly and putting redundant load on the server.
+/** Checks if the appropriate amount of time has passed since the last "Product Grid Request" was approved on the client-side before it was sent to the server. It selects the appropriate time threshold based on whether the newProductGridRequest and pendingProductGridRequest are different from each other or not. The intention is to ensure that requests are being sent too rapidly and putting redundant load on the server.
  * @returns {boolean} If timeout is open, returns true. If closed, returns false.
  */
 function checkRequestTimeoutThresholdForApproval () {
@@ -1991,7 +1945,7 @@ function checkRequestTimeoutThresholdForApproval () {
     /** The current date object of this function call */
     const nowDate = new Date();
 
-    // TODO: Ensure that the millisecond representation is used
+    // TODO: Ensure that the millisecond representation for Date is used
     // Calculate how much time that has passed since the last time that a "product grid request" was approved on the client-side before it was sent to the server
     // Check if the script-level lastProductGridRequestDate variable is valid
     if (lastProductGridRequestDate instanceof Date) {
@@ -2035,16 +1989,22 @@ function applyProductQueryOptionsInProductGrid (newQueryOpt) {
     // Set the new options as the new one
     currentQueryOptions = newQueryOpt;
 
-    // TODO: Can this null value cause errors?
-    // Since the "Product Query Options" have changed, the current script-level variable "last available product index" value may be incorrect. Nullify it
+    // Since the "Product Query Options" have changed, the current script-level variable "last available product index" value may be incorrect and needs to be reset. Nullify it.
+    // NOTE: The following call hiearchy is expected to have an exception for this null value 
     lastAvailableProductID = null;
 
     // Since the "Product Query Options" have changed, the new value for "last available product index" is needed. Set the get-directive for this property to true
     newProductGridRequest.getLastAvailableID = true;
 
-    // For the rest of neccessary work, the routine of changing "product grid page" can be used to complement this function
+    // For the rest of neccessary work, the routine of changing "product grid page" can be used to complement this function and avoid repeated code
     // Change to the first page, which is index zero
-    changePageInProductGrid(0);
+    // This function may throw an error
+    try { changePageInProductGrid(0) }
+    catch (e) {
+        // Reset the new "product grid request"
+        nullifyNewProductGridRequest();
+        throw new Error(`Product Grid - applyProductQueryOptionsInProductGrid: Caught error when re-using the function changePageInProductGrid to change page to index zero to avoid repeated code: ${e}`)
+    }
 }
 
 /** Intersection API */
@@ -2072,16 +2032,30 @@ function onIntersectionWithLastEntry () {
         return;
     }
 
-    // Use the general routine for manipulating the browsing history
-    generalHistoryManipulation();
-
-    fetchAndProcessProductGridResponse();
+    // Finally, fetch a "product grid response" with the new "product grid request" and process it
+    // This function may throw an error
+    try { fetchAndProcessProductGridResponse() }
+    catch (e) { throw new Error(`Product Grid - onIntersectionWithLastEntry: Caught an error when trying to fetch and process the "product grid response": ${e}`) }
 }
 
-/** A general routine for manipulating the browsing history when  of the "product grid" changes
+/** A general routine for manipulating the browsing history when the state of the "product grid" changes
+ * @param {number} newPageID The new "product grid page index" to use for the new history state
  * @throws {TypeError | Error} If an error occurs when validating the current "location" or when calling other functions
 */
-function generalHistoryManipulation () {    
+function generalHistoryManipulation (newPageID) {    
+    // Before proceeding, check if the argument "new page index" is invalid
+    if (
+        // Check if it's NOT a number type
+        typeof newPageID !== "number"
+
+        // Check if it's a positive integer value
+        || !Number.isInteger(newPageID)
+        || newPageID < 0
+    ) {
+        // Then, throw an error
+        throw new TypeError("Product Grid - generalHistoryManipulation: The argument newPageID is invalid.");
+    }
+
     // Before manipulating the browsing history state, attempt processing the URLs and check if any error is thrown
     // For the current "location URL", no processing is neccessary, as it will be pushed directly into the history
     
@@ -2106,7 +2080,7 @@ function generalHistoryManipulation () {
     newURLObj.search = "";
 
     // Add query string to the new URL
-    try { newURLObj = appendProductGridStateToURL(newURLObj, currentQueryOptions, currentPageID); }
+    try { newURLObj = appendProductGridStateToURL(newURLObj, currentQueryOptions, newPageID); }
 
     // The custom function can potentially throw an error
     catch (e) {
