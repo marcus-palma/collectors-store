@@ -28,9 +28,9 @@
 ////////////////////////////////////////
 
 // Declare and define an Autonomous Custom Element
-class productEntry extends HTMLElement {
+class ProductEntry extends HTMLElement {
     /** A pool of free, deactivated "product entries". Allows re-using old instances
-     * @type {Array.<productEntry>} */
+     * @type {Array.<ProductEntry>} */
     static #productEntryPool = new Array();
 
     #shadowDOM = null;
@@ -75,12 +75,12 @@ class productEntry extends HTMLElement {
 
     /** Set data and return a complete instance of "product entry" 
      * @param {productEntryDataResponse} productEntryData 
-     * @returns {productEntry}
+     * @returns {ProductEntry}
      * @throws {TypeError | Error} If the argument "product entry data" is invalid, or if the method #setProductData throws an error
      */
     static createEntry (productEntryData) {
         // Check if the "product entry data response object" is valid, by usinga specialized function
-        if (!productEntry.isProductEntryDataResponseValid) {
+        if (!ProductEntry.isProductEntryDataResponseValid) {
             // Then, throw a TypeError
             throw new TypeError("Product Entry - static createEntry: The argument 'productEntryData' is invalid");
         }
@@ -88,13 +88,13 @@ class productEntry extends HTMLElement {
         // To get an instance of "product entry" check the "product entry pool" first before creating a new instance
 
         /** The selected "product entry" element reference to use
-         * @type {productEntry} */
+         * @type {ProductEntry} */
         let selectedProductEntry = null;
 
         // Does the "product entry pool" have any instances?
-        if (productEntry.#productEntryPool.length > 0) {
+        if (ProductEntry.#productEntryPool.length > 0) {
             // Then re-use one instance. It doesn't matter which instance is picked, as they are all reset since earlier
-            selectedProductEntry = productEntry.#productEntryPool.pop();
+            selectedProductEntry = ProductEntry.#productEntryPool.pop();
         }
 
         // Otherwise, the "product entry pool" is empty
@@ -228,7 +228,7 @@ class productEntry extends HTMLElement {
         // Process the "HTTP Response"
         .then((response) => {
             // Check if the "HTTP status code" is NOT ok
-            if(!response.ok) Promise.reject("Product Entry - class productEntry - method #setEntryHTML: fetch response HTTP status code is NOT ok");
+            if(!response.ok) Promise.reject("Product Entry - class ProductEntry - method #setEntryHTML: fetch response HTTP status code is NOT ok");
             
             // Convert the HTTP body into text
             return response.text();
@@ -289,14 +289,14 @@ class productEntry extends HTMLElement {
         imgSrcBlock: {
             // Validate the passed property
             if (typeof productEntryData.imgSrc === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.imgSrc but it's undefined");
+                console.error("class ProductEntry - method #setData: Expected property data.imgSrc but it's undefined");
                 // Then do no more work and break this labeled block
                 break imgSrcBlock;
             }
             
             // Validate the class-level reference variable to the "img" element
             if (this.#imgElem === null) {
-                console.error("class productEntry - method #setData: member #img is null");
+                console.error("class ProductEntry - method #setData: member #img is null");
                 // Then do no more work and break this labeled block
                 break imgSrcBlock;
             }
@@ -309,14 +309,14 @@ class productEntry extends HTMLElement {
         nameBlock: {
             // Validate the passed property
             if (typeof productEntryData.name === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.name but it's undefined");
+                console.error("class ProductEntry - method #setData: Expected property data.name but it's undefined");
                 // Then do no more work and break this labeled block
                 break nameBlock;
             }
             
             // Validate the reference to element
             if (this.#nameElem === null) {
-                console.error("class productEntry - method #setData: member #name is null");
+                console.error("class ProductEntry - method #setData: member #name is null");
                 // Then do no more work and break this labeled block
                 break nameBlock;
             }
@@ -329,14 +329,14 @@ class productEntry extends HTMLElement {
         cultureBlock: {
             // Validate the passed property
             if (typeof productEntryData.culture === "undefined") {
-                console.error("class productEntry - method #setData: Expected property 'culture' but it's undefined");
+                console.error("class ProductEntry - method #setData: Expected property 'culture' but it's undefined");
                 // Then do no more work and break this labeled block
                 break cultureBlock;
             }
             
             // Validate the reference to element
             if (this.#cultureElem === null) {
-                console.error("class productEntry - method #setData: member #culture is null");
+                console.error("class ProductEntry - method #setData: member #culture is null");
                 // Then do no more work and break this labeled block
                 break cultureBlock;
             }
@@ -349,14 +349,14 @@ class productEntry extends HTMLElement {
         priceBlock: {
             // Validate the passed property
             if (typeof productEntryData.price === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.price but it's undefined");
+                console.error("class ProductEntry - method #setData: Expected property data.price but it's undefined");
                 // Then do no more work and break this labeled block
                 break priceBlock;
             }
             
             // Validate the reference to element
             if (this.#priceElem === null) {
-                console.error("class productEntry - method #setData: member #priceElem is null");
+                console.error("class ProductEntry - method #setData: member #priceElem is null");
                 // Then do no more work and break this labeled block
                 break priceBlock;
             }
@@ -375,7 +375,7 @@ class productEntry extends HTMLElement {
         prodURLBlock: {
             // Check if the "product URL" property is undefined
             if (typeof productEntryData.productURL === "undefined") {
-                console.error("class productEntry - method #setData: Expected property data.productURL but it's undefined");
+                console.error("class ProductEntry - method #setData: Expected property data.productURL but it's undefined");
                 // Then do no more work and break this labeled block
                 break prodURLBlock;
             }
@@ -405,7 +405,7 @@ class productEntry extends HTMLElement {
         this.#container.href = "";
 
         // Add this deactivated instance to the pool of free instances of "product entries"
-        productEntry.#productEntryPool.push(this);
+        ProductEntry.#productEntryPool.push(this);
     }
 
     /** A callback method for when the MutationObserver has triggered on the wrapper for HTML insertion. This method may initiate a limited recursive loop */
@@ -424,7 +424,7 @@ class productEntry extends HTMLElement {
             || this.#cultureElem == null
             || this.#priceElem == null
         ) {
-            console.warn("Product Entry - class productEntry - method #setEntryHTML: After observing mutations in the wrapper container after inserting HTML text, the inserted HTML has not been completely parsed into HTML elements yet");
+            console.warn("Product Entry - class ProductEntry - method #setEntryHTML: After observing mutations in the wrapper container after inserting HTML text, the inserted HTML has not been completely parsed into HTML elements yet");
 
             // Only wait for maximum of 5 times
             if (this.#numWaitsForHTMLParsing <= 5) {
@@ -464,4 +464,4 @@ class productEntry extends HTMLElement {
 // Main functionality
 ////////////////////////////////////////
 
-window.customElements.define("product-entry", productEntry);
+window.customElements.define("product-entry", ProductEntry);

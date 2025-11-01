@@ -55,7 +55,7 @@ let productFilterMenuTemplate;
 // Classes
 /////////////////////////////
 
-class productFilterGrid extends HTMLElement {
+class ProductFilterGrid extends HTMLElement {
     constructor () {
         super();
     }
@@ -84,7 +84,7 @@ initProductFilterMenu();
 function initProductFilterMenu () {
 
     // Register the custom element "product filter grid"
-    customElements.define("product-filter-grid", productFilterGrid);
+    customElements.define("product-filter-grid", ProductFilterGrid);
 
     fetchMenuTemplate()
     
@@ -140,10 +140,10 @@ function applyProductFilterMenuTemplate (template) {
 
     // TODO:
     // Iterate through the categoryTypes array
-    //      Create Custom Element of class productFilterGrid with displayName, categoryType, categoryIDs
-    //      Constructor in productFilterGrid:
+    //      Create Custom Element of class ProductFilterGrid with displayName, categoryType, categoryIDs
+    //      Constructor in ProductFilterGrid:
     //          Iterate through the categoryIDs array
-    //              Create Custom Element of class productFilterEntry with displayName, categoryID, imgSrc
+    //              Create Custom Element of class ProductFilterEntry with displayName, categoryID, imgSrc
     //              Constructor in productFilterEntry:
     //                  Use displayName
     //                  Use categoryID

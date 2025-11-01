@@ -1096,8 +1096,8 @@ function clearProductGrid () {
             // Check the internal "HTML tag" 
             element.localName === "product-entry"
 
-            // AND check if the reference is an instance of class "productEntry"
-            && element instanceof productEntry
+            // AND check if the reference is an instance of class "ProductEntry"
+            && element instanceof ProductEntry
         ) {       
             // Remove from the DOM. The Custom Elements API lifecycle callback "disconnectedCallback" will be called on this instance and do internal work
             element.remove();
@@ -1579,13 +1579,13 @@ function fetchAndProcessProductGridResponse () {
                 }
 
                 /** The selected "product entry" element reference to use
-                 * @type {productEntry} */
+                 * @type {ProductEntry} */
                 let newProductEntry = null;  
 
                 // The method may throw an error
-                try { newProductEntry = productEntry.createEntry(productEntryData) }
+                try { newProductEntry = ProductEntry.createEntry(productEntryData) }
                 catch (e) {
-                    console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise:: Caught an error while creating an instance of class "productEntry": ${e}`);
+                    console.error(`Product Grid - function fetchAndProcessProductGridResponse - Promise fetchAndProcessPromise:: Caught an error while creating an instance of class "ProductEntry": ${e}`);
 
                     // Then, skip this entry. Don't count this iteration as a "successful product entry". Continue this for-statement
                     continue;
