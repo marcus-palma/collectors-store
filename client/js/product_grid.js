@@ -20,6 +20,8 @@ export {
      * @param {boolean}         enablePages         
      * @param {productQueryOptions}    initialQuery    
      */
+    
+    // TODO: After converting Product Grid to a class, export that class
     initializeGrid as initialize,
     requestToFetchAndPropagateGrid as requestToPropagate,
 };
@@ -97,9 +99,16 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
 // Script-level variables
 ////////////////////////////////////////
 
-/** (TODO: Implement this) The direction in which the grid grows in size, internally, and how it adapts externally. "vertical" mode wraps the content into new rows. The actual height depends on the number of rows. "horizontal" mode will overflow internally in horizontal direction, enabling scrolling. The actual height is always one row. Every mode has a width that fits 100% of the container.
+/** The direction in which the grid grows in size, internally, and how it adapts externally. "vertical" mode wraps the content into new rows. The actual height depends on the number of rows. "horizontal" mode will overflow internally in horizontal direction, enabling scrolling. The actual height is always one row. Every mode has a width that fits 100% of the container.
  * @type {string} */
 let growthDirection;
+
+/** A set of allowed values for the option "growth direction"
+ * @type {Set.<string>} */
+const allowedGrowthDirectionValues = new Set(
+    "horizontal",
+    "vertical"
+)
 
 /** An option for the "Product Grid". If true, create and add a "Product Filter Menu" component on the top of the "Product Grid".
  * @type {string} */
@@ -274,20 +283,25 @@ function initializeGrid (
     initialQueryOptions = null
 ){
     // Set up the CSS Grid based on the desired type of "Product Grid", determined by the direction of growth
-    switch(growthDirectionParam) {
-        case "vertical":
-            grid.setAttribute("class", "container vertical");
-            growthDirection = growthDirectionParam;
-            break;
-        case "horizontal":
-            grid.setAttribute("class", "container horizontal");
-            growthDirection = growthDirectionParam;
-            break;
-        default:
-            growthDirection = "vertical";
-            grid.setAttribute("class", "container vertical");
-            console.warn("Product Grid - initializeGrid: argument 'growthDirection' has an invalid value. Defaulting to 'vertical'.");
+    // Check if the argument is NOT valid
+    if (typeof growthDirectionParam !== "string") {
+        console.warn("Product Grid - initializeGrid: argument 'growthDirectionParam' is NOT a string, which is an invalid type. Defaulting to 'vertical'");
+
+        // Default to "vertical" option value
+        growthDirection = "vertical";
     }
+
+    // Otherwise, check if the argument value is NOT allowed
+    else if (!allowedGrowthDirectionValues.has(growthDirectionParam)) {
+        console.warn("Product Grid - initializeGrid: argument 'growthDirectionParam' does NOT have an allowed string value. Defaulting to 'vertical'");
+
+        // Default to "vertical" option value
+        growthDirection = "vertical";
+    }
+
+    // Apply the option by using its value to assign the "class" attribute of the CSS Grid container, expecting the CSS Stylesheet to apply the corresponding ruleset
+    grid.setAttribute("class", "container " + growthDirection);
+
 
     // Store the setting for limiting the number products
     if (typeof maxProductsParam === "number") {
