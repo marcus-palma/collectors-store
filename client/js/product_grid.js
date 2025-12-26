@@ -82,7 +82,7 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
 
 /** The data structure of server responses for the "Product Grid" and "Product Filter Menu"
  * @typedef productGridResponse
- * @property {productEntryDataResponses} productEntries                                      - An array of "product entry data responses"
+ * @property {import("./product_entry").productEntryDataResponses} productEntries                   - An array of "product entry data responses"
  * @property {number} blockSize                                                                     - The server-side "size of block of product entries"
  * @property {number} lastAvailableID                                                               - The reported "last available product entry index for this query"
  * @property {import("./product_filter_menu").productFilterMenuTemplate} productFilterMenuTemplate  - A structured data object of "Product Filter Menu Template" for constructing the menu in the client
