@@ -4,7 +4,11 @@
 // - Present results of Product Entries in a 2D-grid on the entire device screen.
 // - Showcase Product Entries inside of a one-dimensional segment of a document.
 // Dependency: The Product Grid is a module and is used in web pages where shopping items needs to be presented in a concise manner, such as the "Home Page" and the "Query Results Body"
-// Options: The Product Grid allows to pass options to the constructor, opening up for multiple use cases. To see what options are available, please refer to "gridOptions".
+// Instructions:
+// - Create an instance with the createElement() method from the DOM API
+// - Set up the new ProductGrid instance with the initializeGrid() method from the ProductGrid class. Options are available.
+// - Store the reference to the new ProductGrid instance for its entire lifecycle
+// Options: The Product Grid allows to pass options to the initializeGrid function, opening up for multiple use cases. To see what options are available, please refer to "gridOptions".
 
 "use strict";
 
@@ -96,7 +100,7 @@ import { applyProductFilterMenuTemplate } from "/source/collectors-store/client/
 ////////////////////////////////////////
 
 /** (TODO: inherit from HTMLElement and implement as Custom Element) The class containing all the inner workings of the "Product Grid" feature */
-class ProductGrid {
+class ProductGrid extends HTMLElement {
     /** A set of allowed values for the option "growth direction"
     * @type {Set.<string>} */
     static #allowedGrowthDirectionValues = new Set(
