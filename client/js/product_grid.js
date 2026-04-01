@@ -474,7 +474,7 @@ class ProductGrid extends HTMLElement {
         pages: []
     }
 
-    /** (TODO: Ensure that the date unit is expressed as milliseconds) The timestamp of the last time that a "Product Grid Request" was approved on the client-side before it was sent to the server
+    /** The timestamp of the last time that a "Product Grid Request" was approved on the client-side before it was sent to the server
      * @type {Date} */
     #lastProductGridRequestDate = null;
 
@@ -1944,18 +1944,18 @@ class ProductGrid extends HTMLElement {
 
         /** The threshold of difference of the current time and the previously saved time. Expressed in milliseconds
          * @type {Number} */
-        let dateDiffThreshold = null;
+        let dateDiffThresholdMs = null;
 
         // Set the threshold of difference based on whether the new request is repeated or new 
         if (isRepeatedRequest) {
             // Set difference threshold to 4000 ms
-            dateDiffThreshold = 4000;
+            dateDiffThresholdMs = 4000;
         }
 
         // Otherwise, this is a new request. This will also be the fallback behavior in case of an error
         else {
             // Set difference threshold to 2000 ms
-            dateDiffThreshold = 2000;
+            dateDiffThresholdMs = 2000;
         }
 
         /** The time difference of the current time and the previously saved time
@@ -1965,7 +1965,6 @@ class ProductGrid extends HTMLElement {
         /** The current date object of this method call */
         const nowDate = new Date();
 
-        // TODO: Ensure that the millisecond representation for Date is used
         // Calculate how much time that has passed since the last time that a "product grid request" was approved on the client-side before it was sent to the server
         // Check if the private field #lastProductGridRequestDate is valid
         if (this.#lastProductGridRequestDate instanceof Date) {
@@ -1981,8 +1980,9 @@ class ProductGrid extends HTMLElement {
             return true;
         }
 
-        // Check if it hasn't passed enough time since the last time that a "product grid request" was approved on the client-side before it was sent to the server, then return false for rejection
-        if (dateDiff <= dateDiffThreshold) return false;
+        // Check if it hasn't passed enough time since the last time that a "product grid request" was approved on the client-side before it was sent to the server, then return false for rejection.
+        // Since the "time threshold" is expressed in milliseconds, a conversion of the "time difference" to milliseconds is required.
+        if (dateDiff.getMilliseconds() <= dateDiffThresholdMs) return false;
 
         // When reaching this line, the check of the current timeout is considered as approved
         return true;
